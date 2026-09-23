@@ -2,18 +2,11 @@ import { useEffect } from 'react'
 import { LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { NavProvider, useNav } from './store/useNavStore'
+import { isTypingTarget } from './hooks/useKeyboard'
 import { DataError } from './components/shared/DataError'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { NavPage } from './pages/NavPage'
 import { MatrixPage } from './pages/MatrixPage'
-
-/** 快捷键守卫：输入控件聚焦或组合键按下时不触发（避免劫持正常键入） */
-function isTypingTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-  )
-}
 
 function Shell() {
   const { error } = useNav()

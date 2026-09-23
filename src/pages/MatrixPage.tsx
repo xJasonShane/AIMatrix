@@ -3,6 +3,7 @@ import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
 import { useNav } from '../store/useNavStore'
+import { useFocusOnSlash } from '../hooks/useKeyboard'
 import { matchesQuery } from '../data/schema'
 
 export function MatrixPage() {
@@ -30,22 +31,8 @@ export function MatrixPage() {
     [data, q],
   )
 
-  // GitHub 风格快捷键："/" 聚焦矩阵搜索框（输入控件内按下不拦截）
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return
-      const t = e.target
-      if (
-        t instanceof HTMLElement &&
-        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
-      )
-        return
-      e.preventDefault()
-      searchRef.current?.focus()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  // GitHub 风格快捷键："/" 聚焦矩阵搜索框（共享 hook：输入控件内按下不拦截）
+  useFocusOnSlash(searchRef)
 
   useEffect(() => {
     const el = mainRef.current

@@ -5,6 +5,7 @@ import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav, useCollapse } from '../store/useNavStore'
+import { useFocusOnSlash } from '../hooks/useKeyboard'
 import { getRecentLinks, subscribeRecentLinks } from '../store/uiPrefs'
 import { DEFAULT_COLOR, matchesQuery } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
@@ -16,22 +17,8 @@ export function NavPage() {
   const q = query.trim().toLowerCase()
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // GitHub 风格快捷键："/" 聚焦搜索框（输入控件内按下不拦截，交由默认行为）
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return
-      const t = e.target
-      if (
-        t instanceof HTMLElement &&
-        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
-      )
-        return
-      e.preventDefault()
-      searchRef.current?.focus()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  // GitHub 风格快捷键："/" 聚焦搜索框（共享 hook：输入控件内按下不拦截，交由默认行为）
+  useFocusOnSlash(searchRef)
 
   /** 按名称 / 描述即时过滤；搜索时忽略折叠状态，只显示有命中的分类 */
   const visibleCategories = useMemo<NavCategory[]>(
