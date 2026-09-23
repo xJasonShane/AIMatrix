@@ -46,6 +46,14 @@ export function CommandPalette() {
     }
   }, [open])
 
+  // 高亮项变化时滚动入视野（block: nearest 只滚必要的最小距离，避免列表跳动）
+  useEffect(() => {
+    if (!open) return
+    document
+      .getElementById(`cmdk-opt-${activeIdx}`)
+      ?.scrollIntoView?.({ block: 'nearest' })
+  }, [activeIdx, open])
+
   // 焦点陷阱：Tab/Shift+Tab 在面板内循环；打开时锁背景滚动
   useEffect(() => {
     if (!open) return
@@ -148,14 +156,20 @@ export function CommandPalette() {
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  // 新查询重置高亮到首项：残留索引可能已超出过滤后的结果范围
+                  setActiveIdx(0)
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowDown') {
                     e.preventDefault()
-                    setActiveIdx((i) => Math.min(i + 1, actions.length - 1))
+                    // 循环导航：越过末项回到首项（空结果时保持 0）
+                    setActiveIdx((i) => (actions.length ? (i + 1) % actions.length : 0))
                   } else if (e.key === 'ArrowUp') {
                     e.preventDefault()
-                    setActiveIdx((i) => Math.max(i - 1, 0))
+                    // 循环导航：越过首项回到末项
+                    setActiveIdx((i) => (actions.length ? (i - 1 + actions.length) % actions.length : 0))
                   } else if (e.key === 'Enter' && actions[activeIdx]) {
                     e.preventDefault()
                     runAction(actions[activeIdx])

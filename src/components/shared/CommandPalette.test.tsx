@@ -115,3 +115,68 @@ it('excludes links with invalid urls from results', () => {
   expect(options).toHaveLength(1)
   expect(options[0]).toHaveTextContent('好链接')
 })
+
+const twoLinksData = {
+  categories: [
+    {
+      id: 'mock',
+      name: '模拟分类',
+      links: [
+        { id: 'a', name: '链接A', url: 'https://a.example.com', description: '' },
+        { id: 'b', name: '链接B', url: 'https://b.example.com', description: '' },
+      ],
+    },
+  ],
+}
+
+it('wraps arrow navigation past the last item back to the first', () => {
+  mockData = twoLinksData // 2 链接 + 2 视图 = 4 个选项
+  renderPalette()
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  const input = screen.getByRole('combobox')
+  // 首项高亮 → 3 次 ArrowDown 到末项 → 第 4 次回绕到首项
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  const options = screen.getAllByRole('option')
+  expect(options[3]).toHaveAttribute('aria-selected', 'true')
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  expect(options[0]).toHaveAttribute('aria-selected', 'true')
+})
+
+it('wraps arrow navigation from the first item back to the last', () => {
+  mockData = twoLinksData
+  renderPalette()
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  const input = screen.getByRole('combobox')
+  // 首项高亮 → ArrowUp 回绕到末项
+  fireEvent.keyDown(input, { key: 'ArrowUp' })
+  const options = screen.getAllByRole('option')
+  expect(options[options.length - 1]).toHaveAttribute('aria-selected', 'true')
+})
+
+it('resets the highlighted item to the first option when the query changes', () => {
+  mockData = twoLinksData
+  renderPalette()
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  const input = screen.getByRole('combobox')
+  // 先移动高亮到第 3 项，再输入新查询：高亮重置回首项（残留索引会越界）
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.change(input, { target: { value: '链接' } })
+  const options = screen.getAllByRole('option')
+  expect(options).toHaveLength(2)
+  expect(options[0]).toHaveAttribute('aria-selected', 'true')
+})
+
+it('scrolls the highlighted option into view on active index change', () => {
+  const spy = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {})
+  renderPalette()
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  expect(spy).toHaveBeenCalledWith({ block: 'nearest' }) // 打开面板即高亮首项
+  spy.mockClear()
+  fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' })
+  expect(spy).toHaveBeenCalledTimes(1)
+  expect(spy).toHaveBeenCalledWith({ block: 'nearest' })
+  spy.mockRestore()
+})
