@@ -41,6 +41,8 @@ export function MatrixRain() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       cols = columnCount(w)
       drops = Array.from({ length: cols }, () => Math.random() * -40)
+      // 重设画布尺寸会清空内容，降级模式下需立即重绘静态点阵
+      if (reduced) drawStatic()
     }
 
     const drawStatic = () => {

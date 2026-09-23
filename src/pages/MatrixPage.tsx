@@ -1,30 +1,45 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
 import { useNav } from '../store/useNavStore'
+import { uiPrefs } from '../store/uiPrefs'
 
 export function MatrixPage() {
   const { data } = useNav()
-  const [size, setSize] = useState(() => ({
-    width: window.innerWidth,
-    height: window.innerHeight - 70,
-  }))
+  const mainRef = useRef<HTMLElement>(null)
+  // 直接实测内容区尺寸，自动适配页头实际高度（无需硬编码偏移量）
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(
+    () => typeof document !== 'undefined' && document.fullscreenElement != null,
+  )
 
   useEffect(() => {
-    let t: number | undefined
-    const onResize = () => {
-      window.clearTimeout(t)
-      t = window.setTimeout(() => {
-        setSize({ width: window.innerWidth, height: window.innerHeight - 70 })
-      }, 150)
-    }
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      window.clearTimeout(t)
-    }
+    const el = mainRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      setSize({ width: el.clientWidth, height: el.clientHeight })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
+
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(document.fullscreenElement != null)
+    document.addEventListener('fullscreenchange', onFs)
+    return () => document.removeEventListener('fullscreenchange', onFs)
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen()
+      uiPrefs.set(uiPrefs.KEY_FULLSCREEN, 'false')
+    } else {
+      void document.documentElement.requestFullscreen().catch(() => {})
+      // 浏览器安全策略禁止无用户手势时自动进入全屏，故仅记录偏好不自动应用
+      uiPrefs.set(uiPrefs.KEY_FULLSCREEN, 'true')
+    }
+  }
 
   return (
     <div className="page page-matrix">
@@ -32,8 +47,25 @@ export function MatrixPage() {
       <div className="matrix-vignette" aria-hidden="true" />
       <div className="matrix-overlay">
         <AppHeader view="matrix" />
-        <main className="matrix-main">
-          <RadialTree data={data} width={size.width} height={size.height} />
+        <main className="matrix-main" ref={mainRef}>
+          {size && <RadialTree data={data} width={size.width} height={size.height} />}
+          <button
+            type="button"
+            className="fullscreen-btn"
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
+            title={isFullscreen ? '退出全屏' : '进入全屏'}
+          >
+            {isFullscreen ? (
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                <path d="M5.5 1.5v4h-4M9.5 13.5v-4h4" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                <path d="M1.5 5.5v-4h4M13.5 9.5v4h-4" />
+              </svg>
+            )}
+          </button>
           {/* 罗盘角标 */}
           <span
             className="pointer-events-none absolute bottom-5 right-7 flex flex-col items-center font-serif text-[10px] tracking-[2px] text-ink-faint"

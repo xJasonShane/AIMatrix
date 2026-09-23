@@ -143,6 +143,14 @@
 .matrix-main { flex: 1; position: relative; }
 .radial-tree { display: block; }
 
+/* 全屏切换按钮（矩阵页右上角） */
+.fullscreen-btn {
+  @apply absolute top-4 right-5 z-10 grid h-9 w-9 place-items-center rounded-full border border-line bg-paper-raised/90 text-ink-soft shadow-sm backdrop-blur-sm;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.fullscreen-btn:hover { color: var(--color-accent); border-color: var(--color-accent); transform: scale(1.06); }
+.fullscreen-btn:active { transform: scale(0.96); }
+
 .root-ring { fill: none; stroke: var(--color-accent); stroke-width: 1.5; opacity: 0.55; }
 .root-ring.pulse { animation: pulse 2.6s ease-in-out infinite; }
 .root-ticks { animation: spin-slow 18s linear infinite; transform-origin: center; transform-box: fill-box; }

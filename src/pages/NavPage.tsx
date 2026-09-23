@@ -56,7 +56,6 @@ export function NavPage() {
           </span>
         </motion.section>
 
-        {error && <DataErrorInline />}
         {!error && data.categories.length === 0 && (
           <p className="py-10 text-center text-ink-soft">
             还没有任何链接 —— 请编辑 <code className="font-mono text-accent">src/data/navigation.json</code>{' '}
@@ -81,8 +80,4 @@ export function NavPage() {
       </footer>
     </div>
   )
-}
-
-function DataErrorInline() {
-  return <p className="py-10 text-center text-ink-soft">数据加载失败，请检查 navigation.json。</p>
 }
