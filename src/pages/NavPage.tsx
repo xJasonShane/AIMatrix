@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav } from '../store/useNavStore'
-import { getRecentLinks } from '../store/uiPrefs'
+import { getRecentLinks, subscribeRecentLinks } from '../store/uiPrefs'
 import { DEFAULT_COLOR } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
 
@@ -28,18 +28,21 @@ export function NavPage() {
     : data.categories
   const matchedCount = visibleCategories.reduce((n, c) => n + c.links.length, 0)
 
-  /** 最近使用：进入页面时读取一次，点击新链接后下次到访生效 */
+  /** 最近使用：点击链接后通过事件订阅即时刷新（无需重新进入页面） */
+  const [recentIds, setRecentIds] = useState<string[]>(() => getRecentLinks())
+  useEffect(() => subscribeRecentLinks(() => setRecentIds(getRecentLinks())), [])
+
   const recentLinks = useMemo(() => {
     if (q) return []
     const map = new Map<string, { link: NavLink; color: string }>()
     data.categories.forEach((c) =>
       c.links.forEach((l) => map.set(l.id, { link: l, color: c.color ?? DEFAULT_COLOR })),
     )
-    return getRecentLinks()
+    return recentIds
       .map((id) => map.get(id))
       .filter((x): x is { link: NavLink; color: string } => Boolean(x))
       .slice(0, 6)
-  }, [q, data])
+  }, [q, data, recentIds])
 
   const categoryCount = data.categories.length
   const toolCount = data.categories.reduce((n, c) => n + c.links.length, 0)

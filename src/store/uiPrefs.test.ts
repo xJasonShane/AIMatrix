@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { pushRecentLink, getRecentLinks } from './uiPrefs'
+import { pushRecentLink, getRecentLinks, subscribeRecentLinks } from './uiPrefs'
 
 beforeEach(() => localStorage.clear())
 
@@ -27,5 +27,17 @@ describe('recent links', () => {
     expect(getRecentLinks()[0]).toBe('x')
     expect(getRecentLinks()).toContain('x')
     spy.mockRestore()
+  })
+
+  it('notifies subscribers on push and stops after unsubscribe', () => {
+    let calls = 0
+    const unsub = subscribeRecentLinks(() => {
+      calls += 1
+    })
+    pushRecentLink('a')
+    expect(calls).toBe(1)
+    unsub()
+    pushRecentLink('b')
+    expect(calls).toBe(1)
   })
 })

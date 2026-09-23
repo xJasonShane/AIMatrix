@@ -41,3 +41,22 @@ it('shows an empty state for unmatched queries', () => {
   fireEvent.change(input, { target: { value: 'zzz 不存在' } })
   expect(screen.getByText(/没有匹配/)).toBeTruthy()
 })
+
+it('locks body scroll while open and restores on close', async () => {
+  renderPalette()
+  expect(document.body.style.overflow).toBe('')
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  expect(document.body.style.overflow).toBe('hidden')
+  fireEvent.keyDown(window, { key: 'Escape' })
+  await waitFor(() => expect(document.body.style.overflow).toBe(''))
+})
+
+it('traps Tab focus within the panel in both directions', () => {
+  renderPalette()
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+  const input = screen.getByRole('combobox')
+  input.focus()
+  // Tab / Shift+Tab 均被拦截（preventDefault → fireEvent 返回 false），焦点不会逃出面板
+  expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(false)
+  expect(fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })).toBe(false)
+})

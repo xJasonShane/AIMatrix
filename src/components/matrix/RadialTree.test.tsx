@@ -45,3 +45,21 @@ it('pins a branch when its category node is clicked, unpins on second click', ()
   fireEvent.click(catNodes[0])
   expect(catNodes[0]).toHaveAttribute('aria-pressed', 'false')
 })
+
+/** 触发带 pointerType 的 pointerdown（不依赖环境 PointerEvent 实现） */
+const fireTouchDown = (el: Element) => {
+  const e = new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
+  Object.defineProperty(e, 'pointerType', { value: 'touch' })
+  el.dispatchEvent(e)
+}
+
+it('first touch tap shows the popover, second tap opens the link', () => {
+  const { container } = renderTree()
+  const anchor = container.querySelector('a.tree-link-node') as HTMLAnchorElement
+  fireTouchDown(anchor)
+  // 首次触屏 tap：阻止默认跳转，仅显示浮层
+  expect(fireEvent.click(anchor)).toBe(false)
+  fireTouchDown(anchor)
+  // 浮层已显示：再次 tap 放行打开链接
+  expect(fireEvent.click(anchor)).toBe(true)
+})

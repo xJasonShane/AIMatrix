@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type MouseEvent } from 'react'
 import { motion } from 'framer-motion'
 import { isValidUrl, type NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
@@ -21,6 +21,9 @@ export function RadialTree({ data, width, height }: Props) {
   const layout = useMemo(() => computeLayout(data, width, height), [data, width, height])
   const [hovered, setHovered] = useState<string | null>(null)
   const [pinnedCatId, setPinnedCatId] = useState<string | null>(null)
+  // 触屏支持：记录 tap 时的指针类型与 tap 前的 hover 状态，实现"首 tap 显浮层、再 tap 打开"
+  const lastPointerType = useRef('')
+  const hoveredBeforeTap = useRef<string | null>(null)
   const showLinkLabels = width >= 640
 
   /** hover 命中的分类 id：hover 分类本身，或 hover 该分类下的叶节点 */
@@ -183,10 +186,25 @@ export function RadialTree({ data, width, height }: Props) {
           </>
         )
         const nodeHandlers = {
+          onPointerDown: (e: { pointerType: string }) => {
+            lastPointerType.current = e.pointerType
+            hoveredBeforeTap.current = hovered
+          },
           onMouseEnter: () => setHovered(`link:${l.id}`),
           onMouseLeave: () => setHovered(null),
           onFocus: () => setHovered(`link:${l.id}`),
           onBlur: () => setHovered(null),
+        }
+        /** 触屏首次 tap 仅显示浮层（阻止跳转），浮层已显示时再 tap 才打开链接 */
+        const handleClick = (e: MouseEvent) => {
+          const isTouch = lastPointerType.current === 'touch'
+          lastPointerType.current = ''
+          if (isTouch && hoveredBeforeTap.current !== `link:${l.id}`) {
+            e.preventDefault()
+            setHovered(`link:${l.id}`)
+            return
+          }
+          pushRecentLink(l.id)
         }
         const nodeAnim = {
           initial: { opacity: 0, scale: 0.3 },
@@ -204,7 +222,7 @@ export function RadialTree({ data, width, height }: Props) {
                 className="tree-link-node"
                 {...nodeHandlers}
                 {...nodeAnim}
-                onClick={() => pushRecentLink(l.id)}
+                onClick={handleClick}
               >
                 {nodeInner}
               </motion.a>

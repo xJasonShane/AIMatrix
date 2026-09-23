@@ -20,6 +20,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   // Ctrl/Cmd+K 开关，Esc 关闭；打开/关闭时重置搜索状态（事件处理器中重置，避免 effect 内 setState）
   useEffect(() => {
@@ -41,6 +42,36 @@ export function CommandPalette() {
     if (open) {
       const t = window.setTimeout(() => inputRef.current?.focus(), 0)
       return () => window.clearTimeout(t)
+    }
+  }, [open])
+
+  // 焦点陷阱：Tab/Shift+Tab 在面板内循环；打开时锁背景滚动
+  useEffect(() => {
+    if (!open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusables = panel.querySelectorAll<HTMLElement>(
+        'input, button, a[href], [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
     }
   }, [open])
 
@@ -86,6 +117,7 @@ export function CommandPalette() {
           aria-label="命令面板"
         >
           <motion.div
+            ref={panelRef}
             className="cmdk-panel mx-auto mt-[12vh] w-[min(560px,92vw)] overflow-hidden rounded-[14px] border border-line bg-paper-raised shadow-[0_24px_60px_-20px_rgba(60,45,25,0.5)]"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

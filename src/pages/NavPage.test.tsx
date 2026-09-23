@@ -35,3 +35,14 @@ it('filters cards by search query and shows an empty state', () => {
   expect(document.querySelectorAll('.link-card').length).toBe(0)
   expect(screen.getByText(/没有匹配/)).toBeTruthy()
 })
+
+it('shows the recent section immediately after clicking a link', () => {
+  render(
+    <MemoryRouter><NavProvider><NavPage /></NavProvider></MemoryRouter>,
+  )
+  expect(screen.queryByText('最近使用')).toBeNull()
+  const chatgpt = screen.getByRole('link', { name: /ChatGPT/ })
+  fireEvent.click(chatgpt)
+  // 无需重新进入页面，点击后"最近使用"立即出现
+  expect(screen.getByText('最近使用')).toBeTruthy()
+})

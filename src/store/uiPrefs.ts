@@ -36,13 +36,25 @@ function readJsonArray(key: string): string[] {
   }
 }
 
-/** 记录最近打开的链接：去重置顶，最多保留 max 条 */
+const RECENT_EVENT = 'aimatrix:recent-changed'
+
+/** 记录最近打开的链接：去重置顶，最多保留 max 条；派发事件通知订阅方即时刷新 */
 export function pushRecentLink(id: string, max = 6): void {
   const next = [id, ...readJsonArray(uiPrefs.KEY_RECENT).filter((x) => x !== id)].slice(0, max)
   uiPrefs.set(uiPrefs.KEY_RECENT, JSON.stringify(next))
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(RECENT_EVENT))
+  }
 }
 
 /** 读取最近打开的链接 id 列表（最新在前） */
 export function getRecentLinks(): string[] {
   return readJsonArray(uiPrefs.KEY_RECENT)
+}
+
+/** 订阅最近使用变化，返回取消订阅函数 */
+export function subscribeRecentLinks(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  window.addEventListener(RECENT_EVENT, cb)
+  return () => window.removeEventListener(RECENT_EVENT, cb)
 }
