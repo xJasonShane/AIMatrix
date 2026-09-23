@@ -9,10 +9,24 @@ interface Props {
   height: number
 }
 
+/** 36 齿刻度环的 dasharray 段 */
+function tickDashes(r: number, teeth = 36): string {
+  const circumference = 2 * Math.PI * r
+  const segment = circumference / (teeth * 2)
+  return `${segment * 0.45} ${segment * 1.55}`
+}
+
 export function RadialTree({ data, width, height }: Props) {
   const layout = useMemo(() => computeLayout(data, width, height), [data, width, height])
   const [hovered, setHovered] = useState<string | null>(null)
   const showLinkLabels = width >= 640
+
+  /** 当前高亮的分类 id：hover 分类本身，或 hover 该分类下的叶节点 */
+  const activeCatId = hovered
+    ? hovered.startsWith('link:')
+      ? layout.links.find((l) => `link:${l.id}` === hovered)?.categoryId ?? null
+      : hovered
+    : null
 
   const linkPos = (x1: number, y1: number, x2: number, y2: number) => {
     const mx = (x1 + x2) / 2
@@ -22,15 +36,26 @@ export function RadialTree({ data, width, height }: Props) {
 
   return (
     <svg className="radial-tree" width={width} height={height} role="img" aria-label="AI 工具矩阵树">
+      {/* 星图刻度盘底纹：同心虚线参考圆 */}
+      <circle className="ref-circle" cx={layout.root.x} cy={layout.root.y} r={layout.radii.cat} />
+      <circle className="ref-circle" cx={layout.root.x} cy={layout.root.y} r={layout.radii.link} />
+      <circle
+        className="ref-circle"
+        cx={layout.root.x}
+        cy={layout.root.y}
+        r={(layout.radii.cat + layout.radii.link) / 2}
+        opacity={0.4}
+      />
+
       {/* root -> categories */}
       {layout.categories.map((c, i) => (
         <motion.path
           key={`e-${c.id}`}
           d={linkPos(layout.root.x, layout.root.y, c.x, c.y)}
           stroke={c.color}
-          strokeWidth={hovered === c.id ? 2.5 : 1.2}
+          strokeWidth={activeCatId === c.id ? 2.5 : 1.2}
           fill="none"
-          opacity={hovered && hovered !== c.id ? 0.2 : 0.65}
+          opacity={activeCatId && activeCatId !== c.id ? 0.2 : 0.65}
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 0.6, delay: 0.15 + i * 0.08 }}
@@ -40,7 +65,7 @@ export function RadialTree({ data, width, height }: Props) {
       {/* categories -> links */}
       {layout.links.map((l) => {
         const parent = layout.categories.find((c) => c.id === l.categoryId)!
-        const active = hovered === l.categoryId
+        const active = activeCatId === l.categoryId
         return (
           <motion.path
             key={`e-${l.id}`}
@@ -48,7 +73,7 @@ export function RadialTree({ data, width, height }: Props) {
             stroke={l.color}
             strokeWidth={active ? 1.8 : 0.9}
             fill="none"
-            opacity={hovered && !active ? 0.15 : active ? 0.85 : 0.5}
+            opacity={activeCatId && !active ? 0.15 : active ? 0.85 : 0.5}
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 0.5, delay: 0.55 }}
@@ -56,18 +81,30 @@ export function RadialTree({ data, width, height }: Props) {
         )
       })}
 
-      {/* root node */}
+      {/* root node：印章 + 呼吸圈 + 旋转刻度环 */}
       <g className="tree-root">
         <circle cx={layout.root.x} cy={layout.root.y} r={46} className="root-ring pulse" />
-        <circle cx={layout.root.x} cy={layout.root.y} r={34} className="tree-root-circle" />
-        <text x={layout.root.x} y={layout.root.y + 4} textAnchor="middle" className="root-label">MATRIX</text>
+        <circle
+          cx={layout.root.x}
+          cy={layout.root.y}
+          r={56}
+          className="root-ticks"
+          fill="none"
+          stroke="var(--color-line)"
+          strokeWidth="6"
+          strokeDasharray={tickDashes(56)}
+        />
+        <circle cx={layout.root.x} cy={layout.root.y} r={34} className="root-ring-circle" />
+        <text x={layout.root.x} y={layout.root.y + 4} textAnchor="middle" className="root-label">
+          MATRIX
+        </text>
       </g>
 
       {/* category nodes */}
       {layout.categories.map((c, i) => (
         <motion.g
           key={c.id}
-          className={`tree-cat${hovered === c.id ? ' active' : ''}`}
+          className={`tree-cat${activeCatId === c.id ? ' active' : ''}`}
           onMouseEnter={() => setHovered(c.id)}
           onMouseLeave={() => setHovered(null)}
           initial={{ opacity: 0, scale: 0.4 }}
@@ -77,40 +114,107 @@ export function RadialTree({ data, width, height }: Props) {
         >
           <circle cx={c.x} cy={c.y} r={9} fill={c.color} />
           <circle cx={c.x} cy={c.y} r={15} fill="none" stroke={c.color} strokeWidth={1} opacity={0.5} />
-          <text x={c.x} y={c.y - 24} textAnchor="middle" className="cat-label" fill={c.color}>{c.name}</text>
+          <text x={c.x} y={c.y - 24} textAnchor="middle" className="cat-label" fill={c.color}>
+            {c.name}
+          </text>
         </motion.g>
       ))}
 
-      {/* link nodes */}
+      {/* link nodes + hover 浮层 */}
       {layout.links.map((l, i) => {
-        const active = hovered === l.categoryId
+        const active = activeCatId === l.categoryId
         const showLabel = !hovered || active
+        const isHot = hovered === `link:${l.id}`
+        const flip = Math.cos(l.angle) < -0.15 // 左半圆向左展开
+        const popW = 190
+        const popX = flip ? l.x - 16 - popW : l.x + 16
         return (
-          <motion.a
-            key={l.id}
-            href={l.url}
-            target="_blank"
-            rel="noreferrer"
-            className="tree-link-node"
-            initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: showLabel ? 1 : 0.35, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.7 + i * 0.05 }}
-            style={{ transformOrigin: `${l.x}px ${l.y}px`, cursor: 'pointer' }}
-          >
-            <title>{l.name}</title>
-            <circle cx={l.x} cy={l.y} r={5} className="tree-link-circle" stroke={l.color} strokeWidth={2} />
-            {showLinkLabels && showLabel && (
-              <text
-                x={l.x + Math.cos(l.angle) * 14}
-                y={l.y + Math.sin(l.angle) * 14 + 4}
-                textAnchor={Math.cos(l.angle) > 0.1 ? 'start' : Math.cos(l.angle) < -0.1 ? 'end' : 'middle'}
-                className="link-label"
-                fill={active ? '#2b2620' : '#6f6455'}
+          <motion.g key={l.id}>
+            <motion.a
+              href={l.url}
+              target="_blank"
+              rel="noreferrer"
+              className="tree-link-node"
+              onMouseEnter={() => setHovered(`link:${l.id}`)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(`link:${l.id}`)}
+              onBlur={() => setHovered(null)}
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={{ opacity: showLabel ? 1 : 0.35, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.7 + i * 0.05 }}
+              style={{ transformOrigin: `${l.x}px ${l.y}px`, cursor: 'pointer' }}
+            >
+              <title>{l.name}</title>
+              <circle cx={l.x} cy={l.y} r={10} fill={l.color} className="link-node-glow" opacity={0} />
+              <circle cx={l.x} cy={l.y} r={5} className="link-node-circle" stroke={l.color} strokeWidth={2} />
+              {showLinkLabels && showLabel && !isHot && (
+                <text
+                  x={l.x + Math.cos(l.angle) * 14}
+                  y={l.y + Math.sin(l.angle) * 14 + 4}
+                  textAnchor={flip ? 'end' : Math.cos(l.angle) > 0.15 ? 'start' : 'middle'}
+                  className="link-label"
+                  fill={active ? '#2b2620' : '#6f6455'}
+                >
+                  {l.name}
+                </text>
+              )}
+            </motion.a>
+
+            {/* hover / focus 浮层 */}
+            {isHot && (
+              <motion.g
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15, delay: 0.15 }}
+                style={{ pointerEvents: 'none' }}
               >
-                {l.name}
-              </text>
+                <rect
+                  x={popX}
+                  y={l.y - 30}
+                  width={popW}
+                  rx={10}
+                  ry={10}
+                  height={60}
+                  fill="var(--color-paper-raised)"
+                  stroke="var(--color-line)"
+                  strokeWidth={1}
+                  filter="drop-shadow(0 6px 12px rgba(80,60,30,0.28))"
+                />
+                <rect x={popX} y={l.y - 30} width={4} height={60} rx={2} fill={l.color} opacity={0.6} />
+                <text
+                  x={popX + 14}
+                  y={l.y - 10}
+                  className="cat-label"
+                  fill="var(--color-ink)"
+                  style={{ fontSize: 13 }}
+                >
+                  {l.name.length > 16 ? `${l.name.slice(0, 15)}…` : l.name}
+                </text>
+                <text
+                  x={popX + 14}
+                  y={l.y + 7}
+                  className="link-label"
+                  fill="var(--color-ink-soft)"
+                  style={{ fontSize: 10.5 }}
+                >
+                  {l.description
+                    ? l.description.length > 24
+                      ? `${l.description.slice(0, 23)}…`
+                      : l.description
+                    : ' '}
+                </text>
+                <text
+                  x={popX + 14}
+                  y={l.y + 23}
+                  className="link-label"
+                  fill="var(--color-accent)"
+                  style={{ fontSize: 10.5, fontWeight: 600 }}
+                >
+                  打开 ↗
+                </text>
+              </motion.g>
             )}
-          </motion.a>
+          </motion.g>
         )
       })}
     </svg>

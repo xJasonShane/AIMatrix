@@ -13,7 +13,9 @@ export interface LayoutNode {
 export interface RadialLayout {
   root: { x: number; y: number }
   categories: LayoutNode[]
-  links: (LayoutNode & { categoryId: string; url: string })[]
+  links: (LayoutNode & { categoryId: string; url: string; description: string })[]
+  /** 分类环 / 叶环半径，供参考圆底纹使用 */
+  radii: { cat: number; link: number }
 }
 
 export const DEFAULT_COLOR = '#7a8a55'
@@ -27,7 +29,7 @@ export function computeLayout(data: NavData, width: number, height: number): Rad
 
   const ranges = categoryAngleRanges(data.categories)
   const categories: LayoutNode[] = []
-  const links: (LayoutNode & { categoryId: string; url: string })[] = []
+  const links: (LayoutNode & { categoryId: string; url: string; description: string })[] = []
 
   data.categories.forEach((cat) => {
     const range = ranges.find((r) => r.categoryId === cat.id)!
@@ -53,9 +55,10 @@ export function computeLayout(data: NavData, width: number, height: number): Rad
         color,
         categoryId: cat.id,
         url: link.url,
+        description: link.description,
       })
     })
   })
 
-  return { root: { x: cx, y: cy }, categories, links }
+  return { root: { x: cx, y: cy }, categories, links, radii: { cat: rCat, link: rLink } }
 }
