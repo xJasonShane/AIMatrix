@@ -4,6 +4,9 @@ interface Props {
   view: 'nav' | 'matrix'
 }
 
+// 悬停预取矩阵视图 chunk（App 中经 React.lazy 按需加载）：模块缓存去重，多次触发只请求一次
+const prefetchMatrix = () => void import('../../pages/MatrixPage')
+
 export function AppHeader({ view }: Props) {
   return (
     <header className="app-header sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/90 px-7 py-[18px] backdrop-blur-md shadow-[0_10px_24px_-20px_rgba(80,60,30,0.9)]">
@@ -28,6 +31,7 @@ export function AppHeader({ view }: Props) {
         </Link>
         <Link
           to="/matrix"
+          onMouseEnter={prefetchMatrix}
           className={`switch-btn rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all active:scale-95${
             view === 'matrix' ? ' active bg-ink text-paper-raised' : ' text-ink-soft hover:text-accent'
           }`}

@@ -61,9 +61,10 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeTruthy()
   })
 
-  it('renders the matrix view at /matrix', () => {
+  it('renders the matrix view at /matrix', async () => {
     renderApp('/matrix')
-    expect(screen.getByRole('button', { name: '进入全屏' })).toBeTruthy()
+    // 矩阵视图经 React.lazy 按需加载：等待 chunk 解析完成后断言
+    await screen.findByRole('button', { name: '进入全屏' })
     expect(document.getElementById('main-content')).toBeTruthy()
   })
 

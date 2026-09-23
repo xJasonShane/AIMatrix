@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { NavProvider, useNav } from './store/useNavStore'
@@ -7,7 +7,21 @@ import { DataError } from './components/shared/DataError'
 import { ErrorBoundary } from './components/shared/ErrorBoundary'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { NavPage } from './pages/NavPage'
-import { MatrixPage } from './pages/MatrixPage'
+
+// 路由级代码分割：矩阵视图（RadialTree/MatrixRain 及其动画特性）按需加载，首屏只含导航视图
+// 代码；导航视图为默认落地页，保持同步引入避免首屏出现加载占位
+const MatrixPage = lazy(() =>
+  import('./pages/MatrixPage').then((m) => ({ default: m.MatrixPage })),
+)
+
+/** 懒加载路由的过渡占位（chunk 极小，通常仅闪现一帧） */
+function RouteFallback() {
+  return (
+    <div className="grid min-h-[60vh] place-items-center" aria-busy="true">
+      <p className="font-mono text-xs tracking-[0.3em] text-ink-faint">LOADING…</p>
+    </div>
+  )
+}
 
 function Shell() {
   const { error } = useNav()
@@ -50,13 +64,16 @@ function Shell() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        {/* 视图级错误边界：容器按路由 key 重挂载，切换视图即自动复位 */}
+        {/* 视图级错误边界：容器按路由 key 重挂载，切换视图即自动复位；
+            Suspense 置于其内，chunk 加载失败同样落入回退卡片（"返回导航视图"仍可用） */}
         <ErrorBoundary>
-          <Routes location={location}>
-            <Route path="/nav" element={<NavPage />} />
-            <Route path="/matrix" element={<MatrixPage />} />
-            <Route path="*" element={<Navigate to="/nav" replace />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes location={location}>
+              <Route path="/nav" element={<NavPage />} />
+              <Route path="/matrix" element={<MatrixPage />} />
+              <Route path="*" element={<Navigate to="/nav" replace />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </m.div>
       {/* 全局命令面板：置于按路由 key 的容器之外，避免切视图时重挂载 */}
