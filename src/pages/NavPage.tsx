@@ -208,7 +208,7 @@ export function NavPage() {
 
           {/* 即时搜索框 */}
           <m.div
-            className="mt-6 flex max-w-[420px] items-center gap-2 rounded-full border border-line bg-paper-raised px-4 py-2 shadow-[inset_0_1px_3px_rgba(80,60,30,0.08)] transition-colors focus-within:border-accent"
+            className="mt-6 flex max-w-[420px] items-center gap-2 rounded-full border border-line bg-paper-raised px-4 py-2 shadow-[inset_0_1px_3px_rgba(30,60,52,0.07)] transition-colors focus-within:border-accent"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.35 }}

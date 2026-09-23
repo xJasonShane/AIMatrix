@@ -68,7 +68,7 @@ export function MatrixRain() {
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < 40; j++) {
           if (Math.random() > 0.92) {
-            ctx.fillStyle = 'rgba(90,70,45,0.22)'
+            ctx.fillStyle = 'rgba(16, 122, 109, 0.16)'
             ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], i * COLUMN_WIDTH, j * 16)
           }
         }
@@ -82,15 +82,15 @@ export function MatrixRain() {
       if (shouldRedraw(lastDraw, now)) {
         lastDraw = now
         // trail fade — translucent paper color, old strokes "dry away"
-        ctx.fillStyle = 'rgba(247, 239, 217, 0.08)'
+        ctx.fillStyle = 'rgba(244, 247, 245, 0.08)'
         ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
         ctx.font = '13px monospace'
         for (let i = 0; i < cols; i++) {
           const glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0]
           const y = drops[i] * 16
-          ctx.fillStyle = 'rgba(90, 70, 45, 0.75)'
+          ctx.fillStyle = 'rgba(16, 122, 109, 0.65)'
           ctx.fillText(glyph, i * COLUMN_WIDTH, y)
-          ctx.fillStyle = 'rgba(90, 70, 45, 0.3)'
+          ctx.fillStyle = 'rgba(16, 122, 109, 0.26)'
           ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], i * COLUMN_WIDTH, y - 16)
           if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0
           drops[i] += 1

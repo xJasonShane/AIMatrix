@@ -10,7 +10,7 @@ const prefetchMatrix = () => void import('../../pages/MatrixPage')
 
 export function AppHeader({ view }: Props) {
   return (
-    <header className="app-header sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/90 px-7 py-[18px] backdrop-blur-md shadow-[0_10px_24px_-20px_rgba(80,60,30,0.9)]">
+    <header className="app-header sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/85 px-7 py-[18px] backdrop-blur-md shadow-[0_8px_24px_-20px_rgba(30,60,52,0.7)]">
       <div className="flex items-baseline gap-2.5">
         <span className="brand-mark inline-block rounded-[3px] bg-accent px-1 py-[5px] text-[11px] leading-none text-paper-raised shadow-sm">
           ▮

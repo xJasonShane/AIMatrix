@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
     return (
       <div
         role="alert"
-        className="mx-auto my-20 max-w-[720px] -rotate-[0.4deg] rounded border-2 border-dashed border-accent bg-paper-raised px-7 py-6 shadow-[0_4px_14px_-8px_rgba(80,60,30,0.4)]"
+        className="mx-auto my-20 max-w-[720px] rounded-xl border-2 border-dashed border-accent bg-paper-raised px-7 py-6 shadow-[0_4px_16px_-8px_rgba(30,60,52,0.25)]"
       >
         <h1 className="mt-0 font-serif text-xl font-bold text-accent">页面渲染出错</h1>
         <pre className="whitespace-pre-wrap font-mono text-[13px] text-ink-soft">

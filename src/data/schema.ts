@@ -21,7 +21,7 @@ export interface NavData {
 }
 
 /** 分类未指定 color 时的默认色（全站唯一来源） */
-export const DEFAULT_COLOR = '#7a8a55'
+export const DEFAULT_COLOR = '#7d9bb8'
 
 /** 仅接受 http/https 协议且 URL 可被解析；非法 URL 由展示层渲染为禁用态而非抛错 */
 export function isValidUrl(url: string): boolean {

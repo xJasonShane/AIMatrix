@@ -179,7 +179,7 @@ export function CommandPalette() {
         >
           <m.div
             ref={panelRef}
-            className="cmdk-panel mx-auto mt-[12vh] w-[min(560px,92vw)] overflow-hidden rounded-[14px] border border-line bg-paper-raised shadow-[0_24px_60px_-20px_rgba(60,45,25,0.5)]"
+            className="cmdk-panel mx-auto mt-[12vh] w-[min(560px,92vw)] overflow-hidden rounded-[14px] border border-line bg-paper-raised shadow-[0_24px_60px_-20px_rgba(20,50,42,0.4)]"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.98 }}

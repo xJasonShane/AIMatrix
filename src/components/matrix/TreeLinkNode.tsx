@@ -59,7 +59,7 @@ export function TreeLinkNode({
           y={link.y + Math.sin(link.angle) * 14 + 4}
           textAnchor={flip ? 'end' : Math.cos(link.angle) > 0.15 ? 'start' : 'middle'}
           className="link-label"
-          fill={active ? '#2b2620' : '#6f6455'}
+          fill={active ? 'var(--color-ink)' : 'var(--color-ink-soft)'}
         >
           {link.name}
         </text>
@@ -136,7 +136,7 @@ export function TreeLinkNode({
             fill="var(--color-paper-raised)"
             stroke="var(--color-line)"
             strokeWidth={1}
-            filter="drop-shadow(0 6px 12px rgba(80,60,30,0.28))"
+            filter="drop-shadow(0 6px 14px rgba(30,60,52,0.22))"
           />
           <rect x={popX} y={popY} width={4} height={popH} rx={2} fill={link.color} opacity={0.6} />
           <text

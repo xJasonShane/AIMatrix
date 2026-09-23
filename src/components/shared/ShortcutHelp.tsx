@@ -73,7 +73,7 @@ export function ShortcutHelp() {
           <m.div
             ref={panelRef}
             tabIndex={-1}
-            className="cmdk-panel mx-auto mt-[16vh] w-[min(420px,92vw)] rounded-[14px] border border-line bg-paper-raised p-5 shadow-[0_24px_60px_-20px_rgba(60,45,25,0.5)] outline-none"
+            className="cmdk-panel mx-auto mt-[16vh] w-[min(420px,92vw)] rounded-[14px] border border-line bg-paper-raised p-5 shadow-[0_24px_60px_-20px_rgba(20,50,42,0.4)] outline-none"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
