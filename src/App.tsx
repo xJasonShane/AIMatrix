@@ -28,6 +28,12 @@ function Shell() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // 视图切换同步 document.title：浏览器历史/多标签页可辨识当前视图（未知路径经 * 重定向，仅显示站名）
+  useEffect(() => {
+    const viewTitle = { '/nav': '导航视图', '/matrix': '矩阵视图' }[location.pathname]
+    document.title = viewTitle ? `AI Matrix · ${viewTitle}` : 'AI Matrix'
+  }, [location.pathname])
+
   // GitHub 风格 g 序列快捷键：g→n 导航视图，g→m 矩阵视图（1.5s 内需跟上第二个键）
   useEffect(() => {
     let armed = false

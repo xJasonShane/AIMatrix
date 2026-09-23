@@ -106,7 +106,7 @@ export function MatrixPage() {
             </svg>
             <input
               ref={searchRef}
-              type="text"
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {

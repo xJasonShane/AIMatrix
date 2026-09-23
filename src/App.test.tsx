@@ -68,6 +68,14 @@ describe('App shell', () => {
     expect(document.getElementById('main-content')).toBeTruthy()
   })
 
+  it('updates document.title when switching views', async () => {
+    renderApp('/nav')
+    expect(document.title).toBe('AI Matrix · 导航视图')
+    fireEvent.keyDown(window, { key: 'g' })
+    fireEvent.keyDown(window, { key: 'm' })
+    await waitFor(() => expect(document.title).toBe('AI Matrix · 矩阵视图'))
+  })
+
   it('mounts the command palette outside the routed container', () => {
     renderApp('/nav')
     expect(screen.queryByRole('dialog')).toBeNull()
