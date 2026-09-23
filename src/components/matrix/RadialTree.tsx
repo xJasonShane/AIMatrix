@@ -19,14 +19,20 @@ function tickDashes(r: number, teeth = 36): string {
 export function RadialTree({ data, width, height }: Props) {
   const layout = useMemo(() => computeLayout(data, width, height), [data, width, height])
   const [hovered, setHovered] = useState<string | null>(null)
+  const [pinnedCatId, setPinnedCatId] = useState<string | null>(null)
   const showLinkLabels = width >= 640
 
-  /** 当前高亮的分类 id：hover 分类本身，或 hover 该分类下的叶节点 */
-  const activeCatId = hovered
+  /** hover 命中的分类 id：hover 分类本身，或 hover 该分类下的叶节点 */
+  const hoverCatId = hovered
     ? hovered.startsWith('link:')
       ? layout.links.find((l) => `link:${l.id}` === hovered)?.categoryId ?? null
       : hovered
     : null
+  /** 高亮优先级：hover > 点击固定的分类 */
+  const activeCatId = hoverCatId ?? pinnedCatId
+
+  const togglePin = (id: string) =>
+    setPinnedCatId((p) => (p === id ? null : id))
 
   const linkPos = (x1: number, y1: number, x2: number, y2: number) => {
     const mx = (x1 + x2) / 2
@@ -100,13 +106,24 @@ export function RadialTree({ data, width, height }: Props) {
         </text>
       </g>
 
-      {/* category nodes */}
+      {/* category nodes：点击固定高亮该分支（再点一次取消），键盘可达 */}
       {layout.categories.map((c, i) => (
         <motion.g
           key={c.id}
           className={`tree-cat${activeCatId === c.id ? ' active' : ''}`}
           onMouseEnter={() => setHovered(c.id)}
           onMouseLeave={() => setHovered(null)}
+          onClick={() => togglePin(c.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              togglePin(c.id)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-pressed={pinnedCatId === c.id}
+          aria-label={`固定高亮分类：${c.name}`}
           initial={{ opacity: 0, scale: 0.4 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, delay: 0.35 + i * 0.1 }}
@@ -125,40 +142,62 @@ export function RadialTree({ data, width, height }: Props) {
         const active = activeCatId === l.categoryId
         const showLabel = !hovered || active
         const isHot = hovered === `link:${l.id}`
+        const valid = /^https?:\/\//.test(l.url)
         const flip = Math.cos(l.angle) < -0.15 // 左半圆向左展开
         const popW = 190
-        const popX = flip ? l.x - 16 - popW : l.x + 16
+        const popH = 60
+        // 浮层钳制在画布内，避免顶部/底部/右侧被裁剪
+        const popX = Math.min(Math.max(flip ? l.x - 16 - popW : l.x + 16, 8), width - popW - 8)
+        const popY = Math.min(Math.max(l.y - 30, 8), height - popH - 8)
+        const nodeInner = (
+          <>
+            <title>{l.name}</title>
+            <circle cx={l.x} cy={l.y} r={10} fill={l.color} className="link-node-glow" opacity={0} />
+            <circle cx={l.x} cy={l.y} r={5} className="link-node-circle" stroke={l.color} strokeWidth={2} />
+            {showLinkLabels && showLabel && !isHot && (
+              <text
+                x={l.x + Math.cos(l.angle) * 14}
+                y={l.y + Math.sin(l.angle) * 14 + 4}
+                textAnchor={flip ? 'end' : Math.cos(l.angle) > 0.15 ? 'start' : 'middle'}
+                className="link-label"
+                fill={active ? '#2b2620' : '#6f6455'}
+              >
+                {l.name}
+              </text>
+            )}
+          </>
+        )
+        const nodeHandlers = {
+          onMouseEnter: () => setHovered(`link:${l.id}`),
+          onMouseLeave: () => setHovered(null),
+          onFocus: () => setHovered(`link:${l.id}`),
+          onBlur: () => setHovered(null),
+        }
+        const nodeAnim = {
+          initial: { opacity: 0, scale: 0.3 },
+          animate: { opacity: showLabel ? 1 : 0.35, scale: 1 },
+          transition: { duration: 0.4, delay: 0.7 + i * 0.05 },
+          style: { transformOrigin: `${l.x}px ${l.y}px`, cursor: valid ? 'pointer' : 'not-allowed' },
+        }
         return (
           <motion.g key={l.id}>
-            <motion.a
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              className="tree-link-node"
-              onMouseEnter={() => setHovered(`link:${l.id}`)}
-              onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(`link:${l.id}`)}
-              onBlur={() => setHovered(null)}
-              initial={{ opacity: 0, scale: 0.3 }}
-              animate={{ opacity: showLabel ? 1 : 0.35, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.7 + i * 0.05 }}
-              style={{ transformOrigin: `${l.x}px ${l.y}px`, cursor: 'pointer' }}
-            >
-              <title>{l.name}</title>
-              <circle cx={l.x} cy={l.y} r={10} fill={l.color} className="link-node-glow" opacity={0} />
-              <circle cx={l.x} cy={l.y} r={5} className="link-node-circle" stroke={l.color} strokeWidth={2} />
-              {showLinkLabels && showLabel && !isHot && (
-                <text
-                  x={l.x + Math.cos(l.angle) * 14}
-                  y={l.y + Math.sin(l.angle) * 14 + 4}
-                  textAnchor={flip ? 'end' : Math.cos(l.angle) > 0.15 ? 'start' : 'middle'}
-                  className="link-label"
-                  fill={active ? '#2b2620' : '#6f6455'}
-                >
-                  {l.name}
-                </text>
-              )}
-            </motion.a>
+            {valid ? (
+              <motion.a
+                href={l.url}
+                target="_blank"
+                rel="noreferrer"
+                className="tree-link-node"
+                {...nodeHandlers}
+                {...nodeAnim}
+              >
+                {nodeInner}
+              </motion.a>
+            ) : (
+              // 非法 URL：渲染为禁用节点，不可点击（与导航卡片行为一致）
+              <motion.g className="tree-link-node disabled" aria-disabled="true" {...nodeHandlers} {...nodeAnim}>
+                {nodeInner}
+              </motion.g>
+            )}
 
             {/* hover / focus 浮层 */}
             {isHot && (
@@ -170,20 +209,20 @@ export function RadialTree({ data, width, height }: Props) {
               >
                 <rect
                   x={popX}
-                  y={l.y - 30}
+                  y={popY}
                   width={popW}
                   rx={10}
                   ry={10}
-                  height={60}
+                  height={popH}
                   fill="var(--color-paper-raised)"
                   stroke="var(--color-line)"
                   strokeWidth={1}
                   filter="drop-shadow(0 6px 12px rgba(80,60,30,0.28))"
                 />
-                <rect x={popX} y={l.y - 30} width={4} height={60} rx={2} fill={l.color} opacity={0.6} />
+                <rect x={popX} y={popY} width={4} height={popH} rx={2} fill={l.color} opacity={0.6} />
                 <text
                   x={popX + 14}
-                  y={l.y - 10}
+                  y={popY + 20}
                   className="cat-label"
                   fill="var(--color-ink)"
                   style={{ fontSize: 13 }}
@@ -192,7 +231,7 @@ export function RadialTree({ data, width, height }: Props) {
                 </text>
                 <text
                   x={popX + 14}
-                  y={l.y + 7}
+                  y={popY + 37}
                   className="link-label"
                   fill="var(--color-ink-soft)"
                   style={{ fontSize: 10.5 }}
@@ -205,12 +244,12 @@ export function RadialTree({ data, width, height }: Props) {
                 </text>
                 <text
                   x={popX + 14}
-                  y={l.y + 23}
+                  y={popY + 53}
                   className="link-label"
                   fill="var(--color-accent)"
                   style={{ fontSize: 10.5, fontWeight: 600 }}
                 >
-                  打开 ↗
+                  {valid ? '打开 ↗' : 'URL 非法 · 已禁用'}
                 </text>
               </motion.g>
             )}

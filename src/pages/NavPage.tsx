@@ -1,11 +1,29 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
 import { useNav } from '../store/useNavStore'
+import type { NavCategory } from '../data/schema'
 
 export function NavPage() {
   const { data, error, isCollapsed, toggleCollapse } = useNav()
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+
+  /** 按名称 / 描述即时过滤；搜索时忽略折叠状态，只显示有命中的分类 */
+  const visibleCategories: NavCategory[] = q
+    ? data.categories
+        .map((c) => ({
+          ...c,
+          links: c.links.filter(
+            (l) =>
+              l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
+          ),
+        }))
+        .filter((c) => c.links.length > 0)
+    : data.categories
+  const matchedCount = visibleCategories.reduce((n, c) => n + c.links.length, 0)
 
   const categoryCount = data.categories.length
   const toolCount = data.categories.reduce((n, c) => n + c.links.length, 0)
@@ -28,7 +46,7 @@ export function NavPage() {
           </h1>
           <p className="mt-3 text-[15px] text-ink-soft">精选常用 AI 工具 · 一键直达</p>
 
-          <div className="mt-5 flex flex-wrap gap-2.5">
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
             <motion.span
               className="rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
@@ -43,9 +61,50 @@ export function NavPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.25 }}
             >
-              {toolCount} 个工具
+              {q ? `匹配 ${matchedCount} / ${toolCount} 个工具` : `${toolCount} 个工具`}
             </motion.span>
           </div>
+
+          {/* 即时搜索框 */}
+          <motion.div
+            className="mt-6 flex max-w-[420px] items-center gap-2 rounded-full border border-line bg-paper-raised px-4 py-2 shadow-[inset_0_1px_3px_rgba(80,60,30,0.08)] transition-colors focus-within:border-accent"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.35 }}
+          >
+            <svg
+              className="h-4 w-4 shrink-0 text-ink-faint"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <circle cx="7" cy="7" r="4.5" />
+              <path d="M10.5 10.5 14 14" />
+            </svg>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索工具名称或描述…"
+              aria-label="搜索工具"
+              className="w-full border-0 bg-transparent p-0 font-sans text-[13.5px] text-ink outline-none placeholder:text-ink-faint"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="清除搜索"
+                className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-ink-faint transition-colors hover:text-accent"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                  <path d="M2 2l8 8M10 2l-8 8" />
+                </svg>
+              </button>
+            )}
+          </motion.div>
 
           {/* 赭橙印章点缀 */}
           <span
@@ -56,18 +115,23 @@ export function NavPage() {
           </span>
         </motion.section>
 
-        {!error && data.categories.length === 0 && (
+        {!error && q === '' && data.categories.length === 0 && (
           <p className="py-10 text-center text-ink-soft">
             还没有任何链接 —— 请编辑 <code className="font-mono text-accent">src/data/navigation.json</code>{' '}
             添加你的 AI 工具。
           </p>
         )}
-        {data.categories.map((c) => (
+        {!error && q !== '' && visibleCategories.length === 0 && (
+          <p className="py-10 text-center text-ink-soft">
+            没有匹配「{query.trim()}」的工具 —— 试试其他关键词。
+          </p>
+        )}
+        {visibleCategories.map((c) => (
           <CategorySection
             key={c.id}
             category={c}
-            collapsed={isCollapsed(c.id)}
-            onToggle={() => toggleCollapse(c.id)}
+            collapsed={q ? false : isCollapsed(c.id)}
+            onToggle={q ? () => {} : () => toggleCollapse(c.id)}
           />
         ))}
       </main>

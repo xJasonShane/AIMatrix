@@ -50,9 +50,7 @@ export function validateNavData(raw: unknown): NavData {
       const lid = req(l, 'id', lPath)
       mark(lid, lPath)
       const url = req(l, 'url', lPath)
-      if (!/^https?:\/\//.test(url)) {
-        throw new Error(`${lPath}.url 非法，必须以 http(s):// 开头`)
-      }
+      // 非法 URL 不在此处抛错：按设计规范照常渲染，由展示层（LinkCard / 矩阵节点）显示禁用态
       return {
         id: lid,
         name: req(l, 'name', lPath),

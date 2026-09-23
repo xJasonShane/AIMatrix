@@ -187,6 +187,10 @@
 .tree-link-node:hover .link-node-glow,
 .tree-link-node:focus-visible .link-node-glow { opacity: 1; }
 .link-node-glow { opacity: 0; transition: opacity 0.15s; }
+.tree-link-node.disabled { cursor: not-allowed; opacity: 0.45; }
+.tree-link-node.disabled:hover .link-node-circle,
+.tree-link-node.disabled:focus-visible .link-node-circle { r: 5; }
+.tree-link-node.disabled:hover .link-node-glow { opacity: 0; }
 
 .tree-cat { transition: transform 0.18s ease; }
 .tree-cat:hover { transform: scale(1.15); }

@@ -19,6 +19,14 @@ describe('validateNavData', () => {
     expect(() => validateNavData(bad as never)).toThrow(/categories\[0\]\.links\[0\]\.url/)
   })
 
+  it('keeps invalid url instead of throwing (rendering layer shows disabled state)', () => {
+    const bad = {
+      categories: [{ id: 'c', name: 'C', links: [{ id: 'l', name: 'L', url: 'ftp://a.com', description: '' }] }],
+    }
+    expect(() => validateNavData(bad)).not.toThrow()
+    expect(validateNavData(bad).categories[0].links[0].url).toBe('ftp://a.com')
+  })
+
   it('throws on duplicate ids', () => {
     const dup = { categories: [{ id: 'c', name: 'C', links: [{ id: 'x', name: 'A', url: 'https://a.com', description: '' }, { id: 'x', name: 'B', url: 'https://b.com', description: '' }] }] }
     expect(() => validateNavData(dup as never)).toThrow(/duplicate id/)
