@@ -34,7 +34,7 @@ jobs:
       # E2E smoke：以生产构建为被测对象，覆盖视图切换/命令面板/矩阵搜索关键路径
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
