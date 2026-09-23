@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check:size": "node -e \"const fs=require('fs');const path=require('path');const zlib=require('zlib');const dir=path.join('dist','assets');if(!fs.existsSync(dir)){console.error('dist/assets not found - run build first');process.exit(1)}let js=0,css=0;for(const f of fs.readdirSync(dir)){const size=zlib.gzipSync(fs.readFileSync(path.join(dir,f))).length;if(f.endsWith('.js'))js+=size;else if(f.endsWith('.css'))css+=size}const fmt=b=>(b/1024).toFixed(1)+' kB';console.log('gzip  JS '+fmt(js)+'  CSS '+fmt(css));const budget=300*1024;if(js>budget){console.error('FAIL: JS gzip '+fmt(js)+' exceeds budget '+fmt(budget));process.exit(1)}console.log('OK: within '+fmt(budget)+' JS gzip budget')\"",
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest run",

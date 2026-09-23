@@ -6,7 +6,7 @@ import { AppHeader } from './AppHeader'
 describe('AppHeader', () => {
   it('navigates to /matrix when the switch button is clicked', () => {
     render(
-      <MemoryRouter initialEntries={['/nav']}>
+      <MemoryRouter initialEntries={['/nav']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/nav" element={<AppHeader view="nav" />} />
           <Route path="/matrix" element={<div>matrix page</div>} />

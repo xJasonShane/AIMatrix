@@ -29,6 +29,14 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
+/** 合法十六进制颜色：#rgb / #rgba / #rrggbb / #rrggbbaa；非法值降级为 undefined，由默认色兜底 */
+const HEX_COLOR = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+
+/** 与非法 URL 同策略：不抛错，交由展示层回落 DEFAULT_COLOR，保证视觉始终有效 */
+function optionalColor(v: unknown): string | undefined {
+  return typeof v === 'string' && HEX_COLOR.test(v) ? v : undefined
+}
+
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null
 
@@ -74,7 +82,7 @@ export function validateNavData(raw: unknown): NavData {
     return {
       id,
       name: req(c, 'name', cPath),
-      color: typeof c.color === 'string' ? c.color : undefined,
+      color: optionalColor(c.color),
       links,
     }
   })

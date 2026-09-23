@@ -33,6 +33,27 @@ describe('validateNavData', () => {
   })
 })
 
+describe('color normalization', () => {
+  const cats = (colors: (string | number | undefined)[]) => ({
+    categories: colors.map((color, i) => ({
+      id: `c${i}`,
+      name: `C${i}`,
+      ...(color === undefined ? {} : { color }),
+      links: [{ id: `l${i}`, name: 'L', url: 'https://a.com', description: '' }],
+    })),
+  })
+
+  it('keeps valid hex colors (3/4/6/8 digits) and degrades invalid ones to the default', () => {
+    const result = validateNavData(cats(['#abc', 'blah', '#12345678', undefined, 42]))
+    expect(result.categories[0].color).toBe('#abc')
+    // 非十六进制字符串：不抛错，降级为 undefined（展示层回落 DEFAULT_COLOR）
+    expect(result.categories[1].color).toBeUndefined()
+    expect(result.categories[2].color).toBe('#12345678')
+    expect(result.categories[3].color).toBeUndefined()
+    expect(result.categories[4].color).toBeUndefined()
+  })
+})
+
 describe('categoryAngleRanges', () => {
   it('splits a full circle evenly by category link count', () => {
     const ranges = categoryAngleRanges(good.categories)

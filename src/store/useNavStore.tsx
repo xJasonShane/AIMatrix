@@ -2,16 +2,13 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import raw from '../data/navigation.json'
 import {
   validateNavData,
-  categoryAngleRanges,
   type NavData,
-  type AngleRange,
 } from '../data/schema'
 import { uiPrefs } from './uiPrefs'
 
 interface NavContextValue {
   data: NavData
   error: string | null
-  angles: AngleRange[]
 }
 
 /** 折叠状态独立成 context：切换折叠不再触发消费 data 的组件重渲染 */
@@ -61,7 +58,6 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
   const navValue = useMemo<NavContextValue>(() => ({
     data: parsed ?? { categories: [] },
     error,
-    angles: parsed ? categoryAngleRanges(parsed.categories) : [],
   }), [parsed, error])
 
   const collapseValue = useMemo<CollapseContextValue>(() => ({

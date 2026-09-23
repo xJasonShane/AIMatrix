@@ -20,7 +20,7 @@ class ResizeObserverStub {
 const renderPage = () =>
   render(
     <LazyMotion features={domAnimation} strict>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavProvider>
           <MatrixPage />
         </NavProvider>

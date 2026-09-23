@@ -14,7 +14,7 @@ vi.mock('../../store/useNavStore', async (importOriginal) => {
   return {
     ...actual,
     useNav: () =>
-      ({ data: mockData, error: null, angles: [] }) as unknown as ReturnType<
+      ({ data: mockData, error: null }) as unknown as ReturnType<
         typeof actual.useNav
       >,
   }
@@ -28,7 +28,7 @@ beforeEach(() => {
 const renderPalette = (initialPath = '/nav') =>
   render(
     <LazyMotion features={domAnimation} strict>
-      <MemoryRouter initialEntries={[initialPath]}>
+      <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavProvider>
           <CommandPalette />
         </NavProvider>

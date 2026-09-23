@@ -20,7 +20,7 @@ const category: NavCategory = {
 const renderSection = (props: { forceOpen?: boolean } = {}) =>
   render(
     <LazyMotion features={domAnimation} strict>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavProvider>
           <CategorySection category={category} {...props} />
         </NavProvider>

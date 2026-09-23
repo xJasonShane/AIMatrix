@@ -19,11 +19,6 @@ describe('useNavStore', () => {
     expect(result.current.error).toBeNull()
   })
 
-  it('computes angle ranges for every category', () => {
-    const { result } = renderHook(() => useNav(), { wrapper })
-    expect(result.current.angles).toHaveLength(result.current.data.categories.length)
-  })
-
   it('stores collapsed categories in localStorage', () => {
     const { result } = renderHook(() => useCollapse(), { wrapper })
     expect(result.current.isCollapsed('chat')).toBe(false)

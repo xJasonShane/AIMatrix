@@ -13,7 +13,7 @@ const count = (raw as { categories: { links: unknown[] }[] }).categories
 const renderNavPage = () =>
   render(
     <LazyMotion features={domAnimation} strict>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavProvider>
           <NavPage />
         </NavProvider>

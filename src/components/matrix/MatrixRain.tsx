@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const COLUMN_WIDTH = 14
 const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>{}/*+=$#'
@@ -15,6 +15,16 @@ export function prefersReducedMotion(): boolean {
 
 export function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // 订阅系统减弱动效偏好：运行时切换即时生效，与 MotionConfig reducedMotion="user" 行为对齐
+  const [prefersReduced, setPrefersReduced] = useState(prefersReducedMotion)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onChange = () => setPrefersReduced(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -26,7 +36,6 @@ export function MatrixRain() {
     let drops: number[] = []
     let raf = 0
     let running = true
-    const reduced = prefersReducedMotion()
     // Declared BEFORE the if/else below (plan's noted fix for use-before-declare).
     let cleanupVisibility = () => {}
 
@@ -43,7 +52,7 @@ export function MatrixRain() {
       cols = columnCount(w)
       drops = Array.from({ length: cols }, () => Math.random() * -40)
       // 重设画布尺寸会清空内容，降级模式下需立即重绘静态点阵
-      if (reduced) drawStatic()
+      if (prefersReduced) drawStatic()
     }
 
     const drawStatic = () => {
@@ -81,7 +90,7 @@ export function MatrixRain() {
     resize()
     window.addEventListener('resize', resize)
 
-    if (reduced) {
+    if (prefersReduced) {
       drawStatic()
     } else {
       const onVisibility = () => {
@@ -105,7 +114,7 @@ export function MatrixRain() {
       window.removeEventListener('resize', resize)
       cleanupVisibility()
     }
-  }, [])
+  }, [prefersReduced])
 
   return <canvas ref={canvasRef} className="matrix-rain" aria-hidden="true" />
 }
