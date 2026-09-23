@@ -6,6 +6,8 @@ import {
   toggleFavorite,
   getFavorites,
   subscribeFavorites,
+  setFavorites,
+  setRecentLinks,
 } from './uiPrefs'
 
 beforeEach(() => localStorage.clear())
@@ -76,5 +78,31 @@ describe('favorites', () => {
     unsub()
     toggleFavorite('a')
     expect(calls).toBe(1)
+  })
+})
+
+describe('bulk setters (backup import)', () => {
+  it('setFavorites overwrites the whole list and notifies subscribers', () => {
+    toggleFavorite('old')
+    let calls = 0
+    const unsub = subscribeFavorites(() => {
+      calls += 1
+    })
+    setFavorites(['a', 'b'])
+    expect(getFavorites()).toEqual(['a', 'b'])
+    expect(calls).toBe(1)
+    unsub()
+  })
+
+  it('setRecentLinks overwrites the whole list and notifies subscribers', () => {
+    pushRecentLink('old')
+    let calls = 0
+    const unsub = subscribeRecentLinks(() => {
+      calls += 1
+    })
+    setRecentLinks(['x', 'y'])
+    expect(getRecentLinks()).toEqual(['x', 'y'])
+    expect(calls).toBe(1)
+    unsub()
   })
 })

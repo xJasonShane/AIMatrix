@@ -152,6 +152,11 @@
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* 分类联动高亮：/nav?cat= 定位后短暂呼吸式强调，2.2s 后归于透明 */
+@keyframes category-highlight {
+  0%, 55% { background-color: rgba(194, 65, 12, 0.1); }
+  100% { background-color: transparent; }
+}
 
 /* ============ 矩阵页 ============ */
 .matrix-rain {
@@ -187,6 +192,13 @@
 .fullscreen-btn:hover { color: var(--color-accent); border-color: var(--color-accent); transform: scale(1.06); }
 .fullscreen-btn:active { transform: scale(0.96); }
 
+/* 页头快捷键帮助按钮（? 唤起帮助面板） */
+.help-btn {
+  @apply grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-paper-raised p-0 font-mono text-[13px] text-ink-soft shadow-sm;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.help-btn:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
 /* 矩阵页搜索条（顶部居中，纸面半透明） */
 .matrix-search {
   @apply absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-line bg-paper-raised/90 px-4 py-2 shadow-[0_8px_20px_-10px_rgba(80,60,30,0.4)] backdrop-blur-sm transition-colors focus-within:border-accent;
@@ -221,6 +233,18 @@
   paint-order: stroke;
   stroke: var(--color-paper);
   stroke-width: 3px;
+}
+/* 分类节点的"导航查看 →"联动入口文字 */
+.cat-nav-link {
+  fill: var(--color-accent);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+/* /nav?cat= 联动定位的分类高亮 */
+.category-highlight {
+  animation: category-highlight 2.2s ease-out both;
+  border-radius: 10px;
 }
 .link-label {
   font-family: var(--font-sans);

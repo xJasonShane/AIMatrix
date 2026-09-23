@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { m } from 'framer-motion'
 import { matchesQuery, type NavData } from '../../data/schema'
 import { getFavorites, subscribeFavorites } from '../../store/uiPrefs'
@@ -22,6 +23,7 @@ function tickDashes(r: number, teeth = 36): string {
 }
 
 export function RadialTree({ data, width, height, query }: Props) {
+  const navigate = useNavigate()
   const layout = useMemo(() => computeLayout(data, width, height), [data, width, height])
   const [hovered, setHovered] = useState<string | null>(null)
   const [pinnedCatId, setPinnedCatId] = useState<string | null>(null)
@@ -173,6 +175,8 @@ export function RadialTree({ data, width, height, query }: Props) {
           dimmed={matchedCatIds ? !matchedCatIds.has(c.id) : false}
           onHover={setHovered}
           onTogglePin={togglePin}
+          // 双视图联动：高亮激活的分类节点提供"导航查看"入口（?cat= 参数由导航视图消费）
+          onOpenInNav={(id) => navigate(`/nav?cat=${encodeURIComponent(id)}`)}
         />
       ))}
 

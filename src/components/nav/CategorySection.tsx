@@ -7,14 +7,22 @@ interface Props {
   category: NavCategory
   /** 搜索模式下强制展开并忽略折叠切换 */
   forceOpen?: boolean
+  /** 矩阵视图联动：跳转定位后短暂高亮该分类 */
+  highlight?: boolean
 }
 
-export function CategorySection({ category, forceOpen = false }: Props) {
+export function CategorySection({ category, forceOpen = false, highlight = false }: Props) {
   const { isCollapsed, toggleCollapse } = useCollapse()
   const color = category.color ?? DEFAULT_COLOR
   const collapsed = !forceOpen && isCollapsed(category.id)
   return (
-    <section className="category mb-9" data-collapsed={collapsed} style={{ ['--cat' as string]: color }}>
+    // id 供 /nav?cat=<id> 联动定位（矩阵视图"导航查看"入口 / 可分享的分类直达链接）
+    <section
+      id={`cat-${category.id}`}
+      className={`category mb-9${highlight ? ' category-highlight' : ''}`}
+      data-collapsed={collapsed}
+      style={{ ['--cat' as string]: color }}
+    >
       <button
         className="category-head flex w-full cursor-pointer items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-ink"
         onClick={forceOpen ? undefined : () => toggleCollapse(category.id)}

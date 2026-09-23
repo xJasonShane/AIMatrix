@@ -53,6 +53,14 @@ export function getRecentLinks(): string[] {
   return readJsonArray(uiPrefs.KEY_RECENT)
 }
 
+/** 整体覆写最近使用列表（备份导入用）：写入并派发事件通知订阅方即时刷新 */
+export function setRecentLinks(ids: string[]): void {
+  uiPrefs.set(uiPrefs.KEY_RECENT, JSON.stringify(ids))
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(RECENT_EVENT))
+  }
+}
+
 /** 订阅最近使用变化，返回取消订阅函数 */
 export function subscribeRecentLinks(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {}
@@ -75,6 +83,14 @@ export function toggleFavorite(id: string): void {
 /** 读取收藏的链接 id 列表（最新收藏在前） */
 export function getFavorites(): string[] {
   return readJsonArray(uiPrefs.KEY_FAVORITE)
+}
+
+/** 整体覆写收藏列表（备份导入用）：写入并派发事件通知订阅方即时刷新 */
+export function setFavorites(ids: string[]): void {
+  uiPrefs.set(uiPrefs.KEY_FAVORITE, JSON.stringify(ids))
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FAVORITE_EVENT))
+  }
 }
 
 /** 订阅收藏变化，返回取消订阅函数 */

@@ -116,8 +116,15 @@ export function NavProvider({
     setAllCollapsed,
   }), [collapsed, toggleCollapse, setAllCollapsed])
 
+  // value 必须 memo：否则折叠状态变化触发 Provider 重渲染时，内联对象引用变化
+  // 会连带重渲染所有 useNav() 消费者（CommandPalette / MatrixPage 等），抵消拆分 Context 的意义
+  const navValue = useMemo<NavContextValue>(
+    () => ({ data, error, loading }),
+    [data, error, loading],
+  )
+
   return (
-    <NavContext.Provider value={{ data, error, loading }}>
+    <NavContext.Provider value={navValue}>
       <CollapseContext.Provider value={collapseValue}>{children}</CollapseContext.Provider>
     </NavContext.Provider>
   )

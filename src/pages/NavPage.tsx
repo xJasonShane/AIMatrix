@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { m } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
+import { PrefsBackupDialog } from '../components/shared/PrefsBackupDialog'
 import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav, useCollapse } from '../store/useNavStore'
@@ -55,6 +56,19 @@ export function NavPage() {
     [setSearchParams],
   )
   const searchRef = useRef<HTMLInputElement>(null)
+  // 备份对话框开关：收藏 / 最近使用数据导出与导入（纯本地，无网络请求）
+  const [backupOpen, setBackupOpen] = useState(false)
+
+  // 矩阵视图联动（/nav?cat=<id>）：数据就绪后滚动定位到对应分类；
+  // 高亮为派生值（catParam 匹配即加类），动画 2.2s 播完归于透明，无需额外状态
+  const catParam = searchParams.get('cat')
+  useEffect(() => {
+    if (!catParam || loading || error) return
+    const el = document.getElementById(`cat-${catParam}`)
+    if (!el) return
+    // jsdom 等环境未实现 scrollIntoView：可选调用避免崩溃
+    el.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+  }, [catParam, loading, error])
 
   // GitHub 风格快捷键："/" 聚焦搜索框（共享 hook：输入控件内按下不拦截，交由默认行为）
   useFocusOnSlash(searchRef)
@@ -85,6 +99,9 @@ export function NavPage() {
     )
     return map
   }, [data])
+
+  /** 有效链接 id 集合：备份导入时过滤掉数据中已不存在的失效条目 */
+  const knownIds = useMemo(() => new Set(linkMap.keys()), [linkMap])
 
   /** 最近使用：点击链接后通过事件订阅即时刷新（无需重新进入页面） */
   const [recentIds, setRecentIds] = useState<string[]>(() => getRecentLinks())
@@ -145,13 +162,14 @@ export function NavPage() {
           <p className="mt-3 text-[15px] text-ink-soft">精选常用 AI 工具 · 一键直达</p>
 
           <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            {/* 加载期以 "…" 占位：避免弱网下闪现「0 个分类 · 0 个工具」；批量折叠按钮同步禁用 */}
             <m.span
               className="rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.15 }}
             >
-              {categoryCount} 个分类
+              {loading ? '…' : `${categoryCount} 个分类`}
             </m.span>
             <m.span
               className="rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft"
@@ -159,13 +177,14 @@ export function NavPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.25 }}
             >
-              {q ? `匹配 ${matchedCount} / ${toolCount} 个工具` : `${toolCount} 个工具`}
+              {loading ? '…' : q ? `匹配 ${matchedCount} / ${toolCount} 个工具` : `${toolCount} 个工具`}
             </m.span>
             {/* 批量折叠：分类多时逐个折叠低效，一次性全部收起/展开（状态同样持久化） */}
             <m.button
               type="button"
               onClick={() => setAllCollapsed(true)}
-              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent"
+              disabled={loading}
+              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-50 disabled:hover:border-line disabled:hover:text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.3 }}
@@ -175,7 +194,8 @@ export function NavPage() {
             <m.button
               type="button"
               onClick={() => setAllCollapsed(false)}
-              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent"
+              disabled={loading}
+              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-50 disabled:hover:border-line disabled:hover:text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.35 }}
@@ -266,16 +286,35 @@ export function NavPage() {
           <LinkGridSection label="最近使用" title="最近使用" links={recentLinks} colorVar="var(--color-accent)" />
         )}
         {visibleCategories.map((c) => (
-          <CategorySection key={c.id} category={c} forceOpen={q !== ''} />
+          <CategorySection
+            key={c.id}
+            category={c}
+            forceOpen={q !== ''}
+            highlight={catParam === c.id}
+          />
         ))}
       </main>
 
       <footer className="flex justify-between border-t border-line px-7 py-[18px] font-mono text-xs text-ink-faint">
         <span>数据源：public/data/navigation.json（运行时加载，替换即生效）</span>
-        <Link to="/matrix" className="text-accent hover:underline">
-          进入矩阵视图 →
-        </Link>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setBackupOpen(true)}
+            className="cursor-pointer border-0 bg-transparent p-0 font-mono text-xs text-ink-faint transition-colors hover:text-accent"
+          >
+            备份 / 导入
+          </button>
+          <Link to="/matrix" className="text-accent hover:underline">
+            进入矩阵视图 →
+          </Link>
+        </div>
       </footer>
+
+      {/* 收藏 / 最近使用备份对话框（条件挂载：挂载即快照当前数据） */}
+      {backupOpen && (
+        <PrefsBackupDialog knownIds={knownIds} onClose={() => setBackupOpen(false)} />
+      )}
     </div>
   )
 }

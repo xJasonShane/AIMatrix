@@ -1,4 +1,4 @@
-import { it, expect } from 'vitest'
+import { it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
@@ -128,4 +128,17 @@ it('hides the favorites section while searching', () => {
     target: { value: 'chatgpt' },
   })
   expect(screen.queryByRole('region', { name: '收藏' })).toBeNull()
+})
+
+it('locates and highlights the category linked from ?cat= (matrix linkage)', () => {
+  const scrollIntoView = vi
+    .spyOn(HTMLElement.prototype, 'scrollIntoView')
+    .mockImplementation(() => {})
+  renderNavPage('/nav?cat=chat')
+  // 分类 section 携带 cat-<id> 锚点，联动跳转后滚动定位并短暂高亮
+  const section = document.getElementById('cat-chat')
+  expect(section).toBeTruthy()
+  expect(scrollIntoView).toHaveBeenCalled()
+  expect(section).toHaveClass('category-highlight')
+  scrollIntoView.mockRestore()
 })
