@@ -31,7 +31,9 @@ export function MatrixPage() {
         ? data.categories.reduce(
             (n, c) =>
               n +
-              c.links.filter((l) => matchesQuery(q, l.name, l.description)).length,
+              c.links.filter((l) =>
+                matchesQuery(q, l.name, l.description, l.url, ...(l.tags ?? [])),
+              ).length,
             0,
           )
         : 0,

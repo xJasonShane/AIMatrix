@@ -2,7 +2,7 @@ import { it, expect } from 'vitest'
 import { render, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { LazyMotion, domAnimation } from 'framer-motion'
-import { RadialTree } from './RadialTree'
+import { RadialTree, zoomTranslate, clampScale, MIN_SCALE, MAX_SCALE } from './RadialTree'
 import type { NavData } from '../../data/schema'
 
 const data: NavData = {
@@ -101,5 +101,29 @@ describe('RadialTree query filtering', () => {
     const { container } = renderTreeWithQuery('  ')
     expect(linkLabels(container)).toContain('L1')
     expect(linkLabels(container)).toContain('L2')
+  })
+})
+
+describe('view zoom helpers', () => {
+  it('keeps the content point under the pointer fixed while zooming', () => {
+    // 指针下的内容点 c = (p - t) / s 在缩放前后映射到同一视口位置 p
+    const p = { x: 2, y: 3 }
+    const t = zoomTranslate(p.x, p.y, 1, 2, 0, 0)
+    const c = { x: (p.x - 0) / 1, y: (p.y - 0) / 1 }
+    expect(c.x * 2 + t.x).toBeCloseTo(p.x)
+    expect(c.y * 2 + t.y).toBeCloseTo(p.y)
+  })
+
+  it('composes with an existing pan offset', () => {
+    // 视口 (100,100)、旧视图 scale=2 translate=(10,-20)：指针下内容点 c=(45,60)
+    const t = zoomTranslate(100, 100, 2, 4, 10, -20)
+    expect(t.x).toBeCloseTo(-80) // 45*4 + t.x = 100
+    expect(t.y).toBeCloseTo(-140) // 60*4 + t.y = 100
+  })
+
+  it('clamps scale into the configured bounds', () => {
+    expect(clampScale(0.1)).toBe(MIN_SCALE)
+    expect(clampScale(99)).toBe(MAX_SCALE)
+    expect(clampScale(1.5)).toBe(1.5)
   })
 })

@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 
 export const COLUMN_WIDTH = 14
+/** 动画帧率上限：代码雨对帧率不敏感，30fps 可显著降低高刷屏上的 GPU/电量开销 */
+export const FRAME_MIN_INTERVAL = 1000 / 30
 const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>{}/*+=$#'
 
 export function columnCount(width: number, colWidth = COLUMN_WIDTH): number {
   // ceil so the last partial column still fills the width (plan test: 147/14 -> 11)
   return Math.max(0, Math.ceil(width / colWidth))
+}
+
+/** 距上一帧达到最小间隔才重绘（rAF 全速回调下的绘制节流判定） */
+export function shouldRedraw(lastDraw: number, now: number, min = FRAME_MIN_INTERVAL): boolean {
+  return now - lastDraw >= min
 }
 
 export function prefersReducedMotion(): boolean {
@@ -68,21 +75,26 @@ export function MatrixRain() {
       }
     }
 
-    const tick = () => {
+    // 绘制节流：rAF 按显示器刷新率触发（120Hz+ 时开销翻倍），仅达到 30fps 间隔才实际绘制
+    let lastDraw = 0
+    const tick = (now: number) => {
       if (!running) return
-      // trail fade — translucent paper color, old strokes "dry away"
-      ctx.fillStyle = 'rgba(247, 239, 217, 0.08)'
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
-      ctx.font = '13px monospace'
-      for (let i = 0; i < cols; i++) {
-        const glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0]
-        const y = drops[i] * 16
-        ctx.fillStyle = 'rgba(90, 70, 45, 0.75)'
-        ctx.fillText(glyph, i * COLUMN_WIDTH, y)
-        ctx.fillStyle = 'rgba(90, 70, 45, 0.3)'
-        ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], i * COLUMN_WIDTH, y - 16)
-        if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0
-        drops[i] += 1
+      if (shouldRedraw(lastDraw, now)) {
+        lastDraw = now
+        // trail fade — translucent paper color, old strokes "dry away"
+        ctx.fillStyle = 'rgba(247, 239, 217, 0.08)'
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
+        ctx.font = '13px monospace'
+        for (let i = 0; i < cols; i++) {
+          const glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0]
+          const y = drops[i] * 16
+          ctx.fillStyle = 'rgba(90, 70, 45, 0.75)'
+          ctx.fillText(glyph, i * COLUMN_WIDTH, y)
+          ctx.fillStyle = 'rgba(90, 70, 45, 0.3)'
+          ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], i * COLUMN_WIDTH, y - 16)
+          if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0
+          drops[i] += 1
+        }
       }
       raf = requestAnimationFrame(tick)
     }

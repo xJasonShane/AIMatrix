@@ -3,14 +3,34 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, m } from 'framer-motion'
 import { useNav } from '../../store/useNavStore'
 import { DEFAULT_COLOR, isValidUrl, matchesQuery } from '../../data/schema'
-import { pushRecentLink } from '../../store/uiPrefs'
+import {
+  getFavorites,
+  getRecentLinks,
+  pushRecentLink,
+} from '../../store/uiPrefs'
 
 interface PaletteAction {
   id: string
   name: string
   description: string
   kind: '视图' | '链接'
+  /** 链接动作的原始 URL：参与搜索匹配（域名片段可直接命中） */
+  url?: string
   run: () => void
+}
+
+/** 命中子串高亮：查询词首次出现处加 mark（不区分大小写），提升结果扫读效率 */
+function Highlight({ text, q }: { text: string; q: string }) {
+  if (!q) return <>{text}</>
+  const idx = text.toLowerCase().indexOf(q)
+  if (idx === -1) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="cmdk-hl">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  )
 }
 
 /** 全局命令面板：Ctrl/Cmd+K 唤起，搜索链接与视图切换动作 */
@@ -97,8 +117,12 @@ export function CommandPalette() {
         .map((l) => ({
           id: `link-${l.id}`,
           name: l.name,
-          description: `${c.name}${l.description ? ' · ' + l.description : ''}`,
+          // 标签并入描述参与匹配（与导航/矩阵视图的搜索字段对齐）
+          description: `${c.name}${
+            l.tags?.length ? ' · ' + l.tags.join(' ') : ''
+          }${l.description ? ' · ' + l.description : ''}`,
           kind: '链接' as const,
+          url: l.url,
           run: () => {
             // 与 LinkCard / RadialTree 一致：记录最近使用后再打开
             pushRecentLink(l.id)
@@ -106,15 +130,38 @@ export function CommandPalette() {
           },
         })),
     )
+    // 排序：收藏 > 最近使用 > 其余（组内分别按收藏/使用时序，其余保持数据顺序）；
+    // 高频工具无需键入完整名称即可排到结果前列
+    const favIdx = new Map(getFavorites().map((id, i) => [id, i]))
+    const recentIdx = new Map(getRecentLinks().map((id, i) => [id, i]))
+    const tierOf = (action: PaletteAction) => {
+      const linkId = action.id.slice('link-'.length)
+      if (favIdx.has(linkId)) return 0
+      if (recentIdx.has(linkId)) return 1
+      return 2
+    }
+    const orderOf = (action: PaletteAction) => {
+      const linkId = action.id.slice('link-'.length)
+      return favIdx.get(linkId) ?? recentIdx.get(linkId) ?? 0
+    }
+    links.sort((a, b) => {
+      const ta = tierOf(a)
+      const tb = tierOf(b)
+      if (ta !== tb) return ta - tb
+      return ta === 2 ? 0 : orderOf(a) - orderOf(b)
+    })
     const all = [...views, ...links]
     if (!q) return all
-    return all.filter((a) => matchesQuery(q, a.name, a.description))
+    // 搜索匹配字段与导航/矩阵视图保持一致：名称 / 描述 / URL / 标签（标签并入描述）
+    return all.filter((a) => matchesQuery(q, a.name, a.description, a.url ?? ''))
   }, [data, query, navigate])
 
   const runAction = (a: PaletteAction) => {
     setOpen(false)
     a.run()
   }
+
+  const queryLc = query.trim().toLowerCase()
 
   return (
     <AnimatePresence>
@@ -209,8 +256,12 @@ export function CommandPalette() {
                       style={{ background: a.kind === '视图' ? 'var(--color-accent)' : DEFAULT_COLOR }}
                       aria-hidden
                     />
-                    <span className="shrink-0 text-[13.5px] font-semibold text-ink">{a.name}</span>
-                    <span className="min-w-0 flex-1 truncate text-xs text-ink-soft">{a.description}</span>
+                    <span className="shrink-0 text-[13.5px] font-semibold text-ink">
+                      <Highlight text={a.name} q={queryLc} />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-xs text-ink-soft">
+                      <Highlight text={a.description} q={queryLc} />
+                    </span>
                     <span className="shrink-0 rounded border border-line px-1.5 py-px font-mono text-[10px] text-ink-faint">
                       {a.kind}
                     </span>

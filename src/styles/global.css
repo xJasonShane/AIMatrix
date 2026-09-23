@@ -103,6 +103,13 @@
     transition: transform 0.18s ease;
   }
 
+  /* 链接图标（icon 字段）：与首字母色块同尺寸，加载失败降级为色块 */
+  .card-icon {
+    @apply h-[38px] w-[38px] shrink-0 rounded-[10px] border border-line bg-paper object-contain p-1;
+    transition: transform 0.18s ease;
+  }
+  .link-card:hover .card-icon { transform: rotate(-3deg); }
+
   /* 卡片复制 URL 按钮：hover / 键盘 focus-within 时显现 */
   .card-copy {
     @apply absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-line bg-paper-raised text-ink-faint opacity-0 shadow-sm transition-all;
@@ -192,12 +199,27 @@
 .fullscreen-btn:hover { color: var(--color-accent); border-color: var(--color-accent); transform: scale(1.06); }
 .fullscreen-btn:active { transform: scale(0.96); }
 
+/* 矩阵视图重置按钮（缩放/平移偏离初始状态时出现，位于全屏按钮左侧） */
+.view-reset-btn {
+  @apply absolute top-4 right-16 z-10 grid h-9 w-9 place-items-center rounded-full border border-line bg-paper-raised/90 text-ink-soft shadow-sm backdrop-blur-sm;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.view-reset-btn:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
 /* 页头快捷键帮助按钮（? 唤起帮助面板） */
 .help-btn {
   @apply grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-paper-raised p-0 font-mono text-[13px] text-ink-soft shadow-sm;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .help-btn:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
+/* 命令面板命中子串高亮：mark 默认底色替换为强调色文字 */
+.cmdk-hl {
+  background: transparent;
+  color: var(--color-accent);
+  font-weight: 600;
+  padding: 0;
+}
 
 /* 矩阵页搜索条（顶部居中，纸面半透明） */
 .matrix-search {

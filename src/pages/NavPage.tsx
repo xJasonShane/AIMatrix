@@ -73,14 +73,16 @@ export function NavPage() {
   // GitHub 风格快捷键："/" 聚焦搜索框（共享 hook：输入控件内按下不拦截，交由默认行为）
   useFocusOnSlash(searchRef)
 
-  /** 按名称 / 描述即时过滤；搜索时忽略折叠状态，只显示有命中的分类 */
+  /** 按名称 / 描述 / URL（含域名）/ 标签即时过滤；搜索时忽略折叠状态，只显示有命中的分类 */
   const visibleCategories = useMemo<NavCategory[]>(
     () =>
       q
         ? data.categories
             .map((c) => ({
               ...c,
-              links: c.links.filter((l) => matchesQuery(q, l.name, l.description)),
+              links: c.links.filter((l) =>
+                matchesQuery(q, l.name, l.description, l.url, ...(l.tags ?? [])),
+              ),
             }))
             .filter((c) => c.links.length > 0)
         : data.categories,

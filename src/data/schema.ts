@@ -3,6 +3,10 @@ export interface NavLink {
   name: string
   url: string
   description: string
+  /** 可选检索关键词：不直接展示，参与全站搜索（名称/描述/URL 之外的补充召回） */
+  tags?: string[]
+  /** 可选图标：https(s) URL 或站内相对路径（如 ./icons/xxx.svg）；非法值降级为首字母色块 */
+  icon?: string
 }
 
 export interface NavCategory {
@@ -50,6 +54,28 @@ function optionalColor(v: unknown): string | undefined {
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null
 
+/** 合法图标地址：http(s) 绝对地址或 ./ / 相对路径（拒绝 javascript: / data: 等注入面） */
+function optionalIcon(v: unknown): string | undefined {
+  if (typeof v !== 'string') return undefined
+  const s = v.trim()
+  if (s === '') return undefined
+  try {
+    const { protocol } = new URL(s)
+    return protocol === 'https:' || protocol === 'http:' ? s : undefined
+  } catch {
+    // 相对路径（./icons/x.svg、icons/x.svg）：交由 <img> 加载，onError 降级为首字母
+    return s
+  }
+}
+
+/** 可选 tags：仅保留非空字符串，超出上限截断（防御异常大的数据） */
+const MAX_TAGS = 8
+function optionalTags(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined
+  const tags = v.filter((t): t is string => typeof t === 'string' && t.trim() !== '').slice(0, MAX_TAGS)
+  return tags.length > 0 ? tags : undefined
+}
+
 function req(obj: Record<string, unknown>, key: string, path: string): string {
   const v = obj[key]
   if (typeof v !== 'string' || v.trim() === '') {
@@ -82,11 +108,16 @@ export function validateNavData(raw: unknown): NavData {
       mark(lid, lPath)
       const url = req(l, 'url', lPath)
       // 非法 URL 不在此处抛错：按设计规范照常渲染，由展示层（LinkCard / 矩阵节点）显示禁用态
+      const tags = optionalTags(l.tags)
+      const icon = optionalIcon(l.icon)
       return {
         id: lid,
         name: req(l, 'name', lPath),
         url,
         description: typeof l.description === 'string' ? l.description : '',
+        // 可选字段同策略：非法值降级为 undefined（不写入结果），不抛错
+        ...(tags ? { tags } : {}),
+        ...(icon ? { icon } : {}),
       }
     })
     return {

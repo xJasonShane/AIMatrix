@@ -90,6 +90,28 @@ function CopyUrlButton({ url }: { url: string }) {
   )
 }
 
+/** 链接图标：icon 字段存在且加载成功时显示图片，否则降级为首字母色块（同一兜底路径） */
+function CardIcon({ link, color }: { link: NavLink; color: string }) {
+  const [broken, setBroken] = useState(false)
+  const initial = link.name.trim().charAt(0).toUpperCase() || '?'
+  if (!link.icon || broken) {
+    return (
+      <span className="card-initial" style={{ background: `${color}1f`, color }} aria-hidden>
+        {initial}
+      </span>
+    )
+  }
+  return (
+    <img
+      className="card-icon"
+      src={link.icon}
+      alt=""
+      loading="lazy"
+      onError={() => setBroken(true)}
+    />
+  )
+}
+
 function CardInner({
   link,
   color,
@@ -99,12 +121,9 @@ function CardInner({
   color: string
   showDomain: boolean
 }) {
-  const initial = link.name.trim().charAt(0).toUpperCase() || '?'
   return (
     <>
-      <span className="card-initial" style={{ background: `${color}1f`, color }} aria-hidden>
-        {initial}
-      </span>
+      <CardIcon link={link} color={color} />
       <span className="flex min-w-0 flex-1 flex-col gap-[3px] text-left">
         <span className="truncate text-[14.5px] font-semibold text-ink">{link.name}</span>
         <span className="truncate text-xs text-ink-faint">{link.description || '—'}</span>
