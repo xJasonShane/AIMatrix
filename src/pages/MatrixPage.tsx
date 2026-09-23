@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
@@ -7,11 +7,46 @@ import { useNav } from '../store/useNavStore'
 export function MatrixPage() {
   const { data } = useNav()
   const mainRef = useRef<HTMLElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   // 直接实测内容区尺寸，自动适配页头实际高度（无需硬编码偏移量）
   const [size, setSize] = useState<{ width: number; height: number } | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(
     () => typeof document !== 'undefined' && document.fullscreenElement != null,
   )
+  // 矩阵视图搜索：命中节点高亮，未命中压暗；规则与导航视图一致
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  const matchedCount = useMemo(
+    () =>
+      q
+        ? data.categories.reduce(
+            (n, c) =>
+              n +
+              c.links.filter(
+                (l) => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
+              ).length,
+            0,
+          )
+        : 0,
+    [data, q],
+  )
+
+  // GitHub 风格快捷键："/" 聚焦矩阵搜索框（输入控件内按下不拦截）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return
+      const t = e.target
+      if (
+        t instanceof HTMLElement &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+      )
+        return
+      e.preventDefault()
+      searchRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     const el = mainRef.current
@@ -61,7 +96,56 @@ export function MatrixPage() {
       <div className="matrix-overlay">
         <AppHeader view="matrix" />
         <main className="matrix-main" ref={mainRef} id="main-content">
-          {size && <RadialTree data={data} width={size.width} height={size.height} />}
+          {size && <RadialTree data={data} width={size.width} height={size.height} query={query} />}
+          {/* 搜索条：命中节点高亮、未命中压暗；Esc 清空 */}
+          <div className="matrix-search" role="search">
+            <svg
+              className="h-4 w-4 shrink-0 text-ink-faint"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <circle cx="7" cy="7" r="4.5" />
+              <path d="M10.5 10.5 14 14" />
+            </svg>
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setQuery('')
+              }}
+              placeholder="搜索矩阵节点…"
+              aria-label="搜索矩阵节点"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="清除搜索"
+                className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-ink-faint transition-colors hover:text-accent"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                  <path d="M2 2l8 8M10 2l-8 8" />
+                </svg>
+              </button>
+            )}
+            {!q && (
+              <kbd className="pointer-events-none shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">
+                /
+              </kbd>
+            )}
+          </div>
+          {/* 搜索无结果空态 */}
+          {q && matchedCount === 0 && (
+            <p className="matrix-empty" role="status">
+              没有匹配「{query.trim()}」的节点 —— 试试其他关键词。
+            </p>
+          )}
           <button
             type="button"
             className="fullscreen-btn"

@@ -31,6 +31,9 @@ jobs:
       - run: npm run build
       # 包体积守卫：JS gzip 超过预算（300 kB）即失败，防止依赖膨胀回归
       - run: npm run check:size
+      # E2E smoke：以生产构建为被测对象，覆盖视图切换/命令面板/矩阵搜索关键路径
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

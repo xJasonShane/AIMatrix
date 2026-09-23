@@ -15,6 +15,7 @@ interface NavContextValue {
 interface CollapseContextValue {
   isCollapsed: (categoryId: string) => boolean
   toggleCollapse: (categoryId: string) => void
+  setAllCollapsed: (collapsed: boolean) => void
 }
 
 const NavContext = createContext<NavContextValue | null>(null)
@@ -55,6 +56,16 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  /** 全部收起 / 全部展开：一次性写入持久化（分类列表来自已校验数据） */
+  const setAllCollapsed = useCallback(
+    (collapsed: boolean) => {
+      const next = collapsed ? new Set(parsed?.categories.map((c) => c.id) ?? []) : new Set<string>()
+      uiPrefs.set(uiPrefs.KEY_COLLAPSED, JSON.stringify([...next]))
+      setCollapsed(next)
+    },
+    [parsed],
+  )
+
   const navValue = useMemo<NavContextValue>(() => ({
     data: parsed ?? { categories: [] },
     error,
@@ -63,7 +74,8 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
   const collapseValue = useMemo<CollapseContextValue>(() => ({
     isCollapsed: (id) => collapsed.has(id),
     toggleCollapse,
-  }), [collapsed, toggleCollapse])
+    setAllCollapsed,
+  }), [collapsed, toggleCollapse, setAllCollapsed])
 
   return (
     <NavContext.Provider value={navValue}>

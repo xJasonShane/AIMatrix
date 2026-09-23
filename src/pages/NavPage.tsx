@@ -4,13 +4,14 @@ import { m } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
-import { useNav } from '../store/useNavStore'
+import { useNav, useCollapse } from '../store/useNavStore'
 import { getRecentLinks, subscribeRecentLinks } from '../store/uiPrefs'
 import { DEFAULT_COLOR } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
 
 export function NavPage() {
   const { data, error } = useNav()
+  const { setAllCollapsed } = useCollapse()
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
   const searchRef = useRef<HTMLInputElement>(null)
@@ -115,6 +116,27 @@ export function NavPage() {
             >
               {q ? `匹配 ${matchedCount} / ${toolCount} 个工具` : `${toolCount} 个工具`}
             </m.span>
+            {/* 批量折叠：分类多时逐个折叠低效，一次性全部收起/展开（状态同样持久化） */}
+            <m.button
+              type="button"
+              onClick={() => setAllCollapsed(true)}
+              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.3 }}
+            >
+              全部收起
+            </m.button>
+            <m.button
+              type="button"
+              onClick={() => setAllCollapsed(false)}
+              className="cursor-pointer rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.35 }}
+            >
+              全部展开
+            </m.button>
           </div>
 
           {/* 即时搜索框 */}

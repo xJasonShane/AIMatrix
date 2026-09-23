@@ -60,6 +60,10 @@ const fireTouchDown = (el: Element) => {
   el.dispatchEvent(e)
 }
 
+/** 收集当前渲染的叶节点静态标签（无 hover 时 popover 不渲染，仅静态标签） */
+const linkLabels = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('.link-label')).map((el) => el.textContent)
+
 it('first touch tap shows the popover, second tap opens the link', () => {
   const { container } = renderTree()
   const anchor = container.querySelector('a.tree-link-node') as HTMLAnchorElement
@@ -69,4 +73,27 @@ it('first touch tap shows the popover, second tap opens the link', () => {
   fireTouchDown(anchor)
   // 浮层已显示：再次 tap 放行打开链接
   expect(fireEvent.click(anchor)).toBe(true)
+})
+
+describe('RadialTree query filtering', () => {
+  const renderTreeWithQuery = (query: string) =>
+    render(
+      <LazyMotion features={domAnimation} strict>
+        <RadialTree data={data} width={800} height={600} query={query} />
+      </LazyMotion>,
+    )
+
+  it('shows labels only for matched links and keeps the tree structure', () => {
+    const { container } = renderTreeWithQuery('L1')
+    expect(linkLabels(container)).toContain('L1')
+    // 未命中叶节点的静态标签不渲染（节点与连线压暗但仍在 DOM 中）
+    expect(linkLabels(container)).not.toContain('L2')
+    expect(container.querySelectorAll('a.tree-link-node')).toHaveLength(2)
+  })
+
+  it('renders all labels when the query is empty or whitespace', () => {
+    const { container } = renderTreeWithQuery('  ')
+    expect(linkLabels(container)).toContain('L1')
+    expect(linkLabels(container)).toContain('L2')
+  })
 })

@@ -99,4 +99,21 @@ describe('MatrixPage', () => {
     fireEvent(document, new Event('fullscreenchange'))
     expect(screen.getByRole('button', { name: '退出全屏' })).toBeTruthy()
   })
+
+  it('filters tree nodes by the matrix search and shows a no-match hint', async () => {
+    renderPage()
+    triggerResize()
+    await flushFrame()
+    const input = screen.getByPlaceholderText('搜索矩阵节点…')
+    // 命中：ChatGPT 分类内有匹配（导航数据含 ChatGPT）
+    fireEvent.change(input, { target: { value: 'chat' } })
+    expect(screen.queryByRole('status')).toBeNull()
+    // 未命中：空态提示出现
+    fireEvent.change(input, { target: { value: 'zzz 不存在' } })
+    expect(screen.getByRole('status')).toBeTruthy()
+    expect(screen.getByText(/没有匹配/)).toBeTruthy()
+    // Esc 清空搜索词
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect((input as HTMLInputElement).value).toBe('')
+  })
 })

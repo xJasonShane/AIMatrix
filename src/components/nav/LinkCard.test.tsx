@@ -1,5 +1,5 @@
-import { it, expect, describe, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { it, expect, describe, beforeEach, vi } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { LinkCard } from './LinkCard'
 import type { NavLink } from '../../data/schema'
 
@@ -47,6 +47,19 @@ describe('LinkCard', () => {
   it('shows a dash placeholder when description is empty', () => {
     renderCard({ ...baseLink, description: '' })
     expect(screen.getByText('—')).toBeTruthy()
+  })
+
+  it('copies the url to the clipboard without navigating away', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    renderCard(baseLink)
+
+    const btn = screen.getByRole('button', { name: '复制链接地址' })
+    fireEvent.click(btn)
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('https://chatgpt.com'))
+    // 复制后切换为"已复制"反馈态，且不写入最近使用（复制不算访问）
+    expect(screen.getByRole('button', { name: '已复制链接地址' })).toBeTruthy()
+    expect(localStorage.getItem('aimatrix:recent')).toBeNull()
   })
 
   it('uses the uppercased first letter of the name as the initial', () => {

@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState, type MouseEvent } from 'react'
 import { isValidUrl, type NavLink } from '../../data/schema'
 import { pushRecentLink } from '../../store/uiPrefs'
 
@@ -14,6 +14,43 @@ function hostnameOf(url: string): string {
   } catch {
     return url
   }
+}
+
+/** 复制链接地址：1.5s 后复位图标；剪贴板不可用时静默降级 */
+function CopyUrlButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false)
+  const onClick = async (e: MouseEvent) => {
+    // 阻止冒泡到 <a>：只复制，不跳转
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      /* 剪贴板不可用（旧浏览器/非安全上下文）：静默降级 */
+    }
+  }
+  return (
+    <button
+      type="button"
+      className="card-copy"
+      onClick={onClick}
+      aria-label={copied ? '已复制链接地址' : '复制链接地址'}
+      title={copied ? '已复制' : '复制链接地址'}
+    >
+      {copied ? (
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M2.5 7.5 5.5 10.5 11.5 3.5" />
+        </svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="4.5" y="4.5" width="8" height="8" rx="1.5" />
+          <path d="M9.5 4.5v-2A1.5 1.5 0 0 0 8 1H3a1.5 1.5 0 0 0-1.5 1.5V8A1.5 1.5 0 0 0 3 9.5h2" />
+        </svg>
+      )}
+    </button>
+  )
 }
 
 function CardInner({
@@ -74,7 +111,7 @@ export const LinkCard = memo(function LinkCard({ link, color, index }: Props) {
 
   return (
     <a
-      className="link-card"
+      className="link-card group"
       href={link.url}
       target="_blank"
       rel="noreferrer"
@@ -82,6 +119,7 @@ export const LinkCard = memo(function LinkCard({ link, color, index }: Props) {
       style={{ ['--cat' as string]: color }}
     >
       <CardInner link={link} color={color} showDomain />
+      <CopyUrlButton url={link.url} />
     </a>
   )
 })

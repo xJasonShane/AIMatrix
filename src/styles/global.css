@@ -103,6 +103,14 @@
     transition: transform 0.18s ease;
   }
 
+  /* 卡片复制 URL 按钮：hover / 键盘 focus-within 时显现 */
+  .card-copy {
+    @apply absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-line bg-paper-raised text-ink-faint opacity-0 shadow-sm transition-all;
+  }
+  .link-card:hover .card-copy,
+  .link-card:focus-within .card-copy { opacity: 1; }
+  .card-copy:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
   .category-count {
     @apply rounded-full border px-2 py-px font-mono text-xs;
     border-color: currentColor;
@@ -168,6 +176,19 @@
 }
 .fullscreen-btn:hover { color: var(--color-accent); border-color: var(--color-accent); transform: scale(1.06); }
 .fullscreen-btn:active { transform: scale(0.96); }
+
+/* 矩阵页搜索条（顶部居中，纸面半透明） */
+.matrix-search {
+  @apply absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-line bg-paper-raised/90 px-4 py-2 shadow-[0_8px_20px_-10px_rgba(80,60,30,0.4)] backdrop-blur-sm transition-colors focus-within:border-accent;
+}
+.matrix-search input {
+  @apply w-[220px] border-0 bg-transparent p-0 font-sans text-[13.5px] text-ink outline-none placeholder:text-ink-faint;
+}
+
+/* 矩阵页搜索空态（居中提示） */
+.matrix-empty {
+  @apply pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-line bg-paper-raised/90 px-4 py-2 font-mono text-xs text-ink-soft shadow-sm;
+}
 
 .root-ring { fill: none; stroke: var(--color-accent); stroke-width: 1.5; opacity: 0.55; }
 .root-ring.pulse { animation: pulse 2.6s ease-in-out infinite; }
