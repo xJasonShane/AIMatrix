@@ -16,11 +16,28 @@ export function MatrixPage() {
   useEffect(() => {
     const el = mainRef.current
     if (!el) return
+    let frame = 0
+    let pending: { width: number; height: number } | null = null
+    const apply = () => {
+      frame = 0
+      if (!pending) return
+      const { width, height } = pending
+      pending = null
+      // 尺寸未变化时保持原对象引用，避免无意义重渲染（RO 首帧与等尺寸 resize）
+      setSize((prev) =>
+        prev && prev.width === width && prev.height === height ? prev : { width, height },
+      )
+    }
     const ro = new ResizeObserver(() => {
-      setSize({ width: el.clientWidth, height: el.clientHeight })
+      // 突发回调只记录最新尺寸并申请一帧：同一帧内的多次回调合并为一次重算
+      pending = { width: el.clientWidth, height: el.clientHeight }
+      if (!frame) frame = requestAnimationFrame(apply)
     })
     ro.observe(el)
-    return () => ro.disconnect()
+    return () => {
+      ro.disconnect()
+      if (frame) cancelAnimationFrame(frame)
+    }
   }, [])
 
   useEffect(() => {

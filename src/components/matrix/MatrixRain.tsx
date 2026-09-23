@@ -22,7 +22,6 @@ export function MatrixRain() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     let cols = 0
     let drops: number[] = []
     let raf = 0
@@ -32,6 +31,8 @@ export function MatrixRain() {
     let cleanupVisibility = () => {}
 
     const resize = () => {
+      // dpr 每次重算：窗口跨屏拖动到不同缩放比的显示器时正确适配
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const w = window.innerWidth
       const h = window.innerHeight
       canvas.width = Math.floor(w * dpr)

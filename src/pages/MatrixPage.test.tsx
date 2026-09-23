@@ -33,6 +33,12 @@ const triggerResize = () =>
     roInstances[0].cb([], {} as unknown as ResizeObserver)
   })
 
+/** 等待 rAF 节流帧应用最新尺寸（包在 act 内避免状态更新警告） */
+const flushFrame = () =>
+  act(async () => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  })
+
 beforeEach(() => {
   roInstances.length = 0
   vi.stubGlobal('ResizeObserver', ResizeObserverStub)
@@ -45,14 +51,33 @@ afterEach(() => {
 })
 
 describe('MatrixPage', () => {
-  it('measures the content area and renders the radial tree only after size arrives', () => {
+  it('measures the content area and renders the radial tree after the measured size arrives', async () => {
     renderPage()
     expect(screen.getByRole('banner')).toBeTruthy()
     expect(roInstances).toHaveLength(1)
     // 实测尺寸未知时不渲染径向树，避免 0×0 闪烁
     expect(screen.queryByRole('group', { name: 'AI 工具矩阵树' })).toBeNull()
     triggerResize()
+    // rAF 节流：尺寸在下一帧才应用
+    expect(screen.queryByRole('group', { name: 'AI 工具矩阵树' })).toBeNull()
+    await flushFrame()
     expect(screen.getByRole('group', { name: 'AI 工具矩阵树' })).toBeTruthy()
+  })
+
+  it('coalesces rapid resize callbacks into one relayout with the latest size', async () => {
+    renderPage()
+    const main = document.querySelector('.matrix-main') as HTMLElement
+    let width = 100
+    Object.defineProperty(main, 'clientWidth', { configurable: true, get: () => width })
+    Object.defineProperty(main, 'clientHeight', { configurable: true, get: () => 600 })
+    triggerResize()
+    width = 200
+    triggerResize()
+    // 同步阶段不重算：同一帧内的多次回调被合并
+    expect(screen.queryByRole('group', { name: 'AI 工具矩阵树' })).toBeNull()
+    await flushFrame()
+    // 合并后仅重算一次，且采用最新尺寸
+    expect(screen.getByRole('group', { name: 'AI 工具矩阵树' })).toHaveAttribute('width', '200')
   })
 
   it('requests fullscreen and reflects fullscreenchange in the button label', () => {
