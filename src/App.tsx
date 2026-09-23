@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { NavProvider, useNav } from './store/useNavStore'
 import { isTypingTarget } from './hooks/useKeyboard'
 import { DataError } from './components/shared/DataError'
+import { ErrorBoundary } from './components/shared/ErrorBoundary'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { NavPage } from './pages/NavPage'
 import { MatrixPage } from './pages/MatrixPage'
@@ -49,11 +50,14 @@ function Shell() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <Routes location={location}>
-          <Route path="/nav" element={<NavPage />} />
-          <Route path="/matrix" element={<MatrixPage />} />
-          <Route path="*" element={<Navigate to="/nav" replace />} />
-        </Routes>
+        {/* 视图级错误边界：容器按路由 key 重挂载，切换视图即自动复位 */}
+        <ErrorBoundary>
+          <Routes location={location}>
+            <Route path="/nav" element={<NavPage />} />
+            <Route path="/matrix" element={<MatrixPage />} />
+            <Route path="*" element={<Navigate to="/nav" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </m.div>
       {/* 全局命令面板：置于按路由 key 的容器之外，避免切视图时重挂载 */}
       <CommandPalette />
