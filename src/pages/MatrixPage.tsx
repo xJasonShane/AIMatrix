@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
@@ -16,8 +17,14 @@ export function MatrixPage() {
     () => typeof document !== 'undefined' && document.fullscreenElement != null,
   )
   // 矩阵视图搜索：命中节点高亮，未命中压暗；规则与导航视图一致
-  const [query, setQuery] = useState('')
+  // 搜索词同步到 URL（?q=…）：刷新/分享链接保留搜索状态；键入以 replace 写入避免污染历史栈
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = searchParams.get('q') ?? ''
   const q = query.trim().toLowerCase()
+  const setQuery = useCallback(
+    (value: string) => setSearchParams(value ? { q: value } : {}, { replace: true }),
+    [setSearchParams],
+  )
   const matchedCount = useMemo(
     () =>
       q

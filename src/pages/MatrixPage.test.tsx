@@ -1,6 +1,7 @@
 import { it, expect, describe, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../store/useNavStore'
 import { MatrixPage } from './MatrixPage'
@@ -16,17 +17,30 @@ class ResizeObserverStub {
   disconnect() {}
 }
 
+// 位置探针：捕获 MemoryRouter 内当前 search，供 URL 同步断言（effect 中记录，避免渲染期副作用）
+let currentSearch = ''
+function SearchProbe() {
+  const { search } = useLocation()
+  useEffect(() => {
+    currentSearch = search
+  }, [search])
+  return null
+}
+
 // m 组件的动画/手势特性需由 LazyMotion 提供（生产环境由 App 统一注入）
-const renderPage = () =>
-  render(
+const renderPage = (initialPath = '/matrix') => {
+  currentSearch = ''
+  return render(
     <LazyMotion features={domAnimation} strict>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavProvider>
           <MatrixPage />
+          <SearchProbe />
         </NavProvider>
       </MemoryRouter>
     </LazyMotion>,
   )
+}
 
 const triggerResize = () =>
   act(() => {
@@ -115,5 +129,20 @@ describe('MatrixPage', () => {
     // Esc 清空搜索词
     fireEvent.keyDown(input, { key: 'Escape' })
     expect((input as HTMLInputElement).value).toBe('')
+  })
+
+  it('restores the search query from the URL (?q=) and syncs edits back', async () => {
+    renderPage('/matrix?q=chat')
+    triggerResize()
+    await flushFrame()
+    // URL 预置查询回填输入框并直接作用于树（命中无空态）
+    const input = screen.getByPlaceholderText('搜索矩阵节点…') as HTMLInputElement
+    expect(input.value).toBe('chat')
+    expect(screen.queryByRole('status')).toBeNull()
+    // 键入新查询同步写入 URL；Esc 清空同步移除参数
+    fireEvent.change(input, { target: { value: 'midjourney' } })
+    expect(currentSearch).toBe('?q=midjourney')
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(currentSearch).toBe('')
   })
 })

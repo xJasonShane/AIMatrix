@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { m } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
@@ -13,8 +13,14 @@ import type { NavCategory, NavLink } from '../data/schema'
 export function NavPage() {
   const { data, error } = useNav()
   const { setAllCollapsed } = useCollapse()
-  const [query, setQuery] = useState('')
+  // 搜索词同步到 URL（?q=…）：刷新/分享链接保留搜索状态；键入以 replace 写入避免污染历史栈
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = searchParams.get('q') ?? ''
   const q = query.trim().toLowerCase()
+  const setQuery = useCallback(
+    (value: string) => setSearchParams(value ? { q: value } : {}, { replace: true }),
+    [setSearchParams],
+  )
   const searchRef = useRef<HTMLInputElement>(null)
 
   // GitHub 风格快捷键："/" 聚焦搜索框（共享 hook：输入控件内按下不拦截，交由默认行为）
