@@ -3,6 +3,7 @@ import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
 import { useNav } from '../store/useNavStore'
+import { matchesQuery } from '../data/schema'
 
 export function MatrixPage() {
   const { data } = useNav()
@@ -22,9 +23,7 @@ export function MatrixPage() {
         ? data.categories.reduce(
             (n, c) =>
               n +
-              c.links.filter(
-                (l) => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
-              ).length,
+              c.links.filter((l) => matchesQuery(q, l.name, l.description)).length,
             0,
           )
         : 0,

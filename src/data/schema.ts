@@ -29,6 +29,16 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
+/**
+ * 全站唯一搜索匹配规则：任一字段包含查询子串即命中（不区分大小写）。
+ * q 须为 trim + toLowerCase 后的查询词；空查询视为全部命中。
+ * 导航卡片过滤 / 矩阵节点高亮 / 命中计数 / 命令面板过滤共用此函数，规则变更只改此处。
+ */
+export function matchesQuery(q: string, ...fields: string[]): boolean {
+  if (!q) return true
+  return fields.some((f) => f.toLowerCase().includes(q))
+}
+
 /** 合法十六进制颜色：#rgb / #rgba / #rrggbb / #rrggbbaa；非法值降级为 undefined，由默认色兜底 */
 const HEX_COLOR = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 

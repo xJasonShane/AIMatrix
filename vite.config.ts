@@ -11,5 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // 单测只收集 src/（e2e/ 下的 Playwright 用例由 playwright.config.ts 管理）
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 })

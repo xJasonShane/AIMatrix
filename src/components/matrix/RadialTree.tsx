@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { m } from 'framer-motion'
-import type { NavData } from '../../data/schema'
+import { matchesQuery, type NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
 import { TreeCategoryNode } from './TreeCategoryNode'
 import { TreeLinkNode } from './TreeLinkNode'
@@ -32,9 +32,7 @@ export function RadialTree({ data, width, height, query }: Props) {
     if (!q) return null
     return new Set(
       data.categories.flatMap((c) =>
-        c.links
-          .filter((l) => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q))
-          .map((l) => l.id),
+        c.links.filter((l) => matchesQuery(q, l.name, l.description)).map((l) => l.id),
       ),
     )
   }, [q, data])

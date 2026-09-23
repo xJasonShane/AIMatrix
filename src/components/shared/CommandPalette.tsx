@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, m } from 'framer-motion'
 import { useNav } from '../../store/useNavStore'
-import { DEFAULT_COLOR, isValidUrl } from '../../data/schema'
+import { DEFAULT_COLOR, isValidUrl, matchesQuery } from '../../data/schema'
 import { pushRecentLink } from '../../store/uiPrefs'
 
 interface PaletteAction {
@@ -100,9 +100,7 @@ export function CommandPalette() {
     )
     const all = [...views, ...links]
     if (!q) return all
-    return all.filter(
-      (a) => a.name.toLowerCase().includes(q) || a.description.toLowerCase().includes(q),
-    )
+    return all.filter((a) => matchesQuery(q, a.name, a.description))
   }, [data, query, navigate])
 
   const runAction = (a: PaletteAction) => {

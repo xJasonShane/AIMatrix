@@ -6,7 +6,7 @@ import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav, useCollapse } from '../store/useNavStore'
 import { getRecentLinks, subscribeRecentLinks } from '../store/uiPrefs'
-import { DEFAULT_COLOR } from '../data/schema'
+import { DEFAULT_COLOR, matchesQuery } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
 
 export function NavPage() {
@@ -40,10 +40,7 @@ export function NavPage() {
         ? data.categories
             .map((c) => ({
               ...c,
-              links: c.links.filter(
-                (l) =>
-                  l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
-              ),
+              links: c.links.filter((l) => matchesQuery(q, l.name, l.description)),
             }))
             .filter((c) => c.links.length > 0)
         : data.categories,

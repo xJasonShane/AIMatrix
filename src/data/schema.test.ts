@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateNavData, categoryAngleRanges, isValidUrl } from './schema'
+import { validateNavData, categoryAngleRanges, isValidUrl, matchesQuery } from './schema'
 import raw from './navigation.json'
 
 const good = {
@@ -92,6 +92,24 @@ describe('isValidUrl', () => {
     expect(isValidUrl('https://a.com/path?q=1#hash')).toBe(true)
     // 协议大小写不敏感（URL 解析会归一化 scheme）
     expect(isValidUrl('HTTPS://A.COM')).toBe(true)
+  })
+})
+
+describe('matchesQuery', () => {
+  it('matches when any field contains the query (case-insensitive)', () => {
+    expect(matchesQuery('gpt', 'ChatGPT', 'OpenAI 对话')).toBe(true)
+    expect(matchesQuery('openai', 'ChatGPT', 'OpenAI 对话')).toBe(true)
+    expect(matchesQuery('chatgpt', 'ChatGPT', 'OpenAI 对话')).toBe(true)
+    expect(matchesQuery('不存在', 'ChatGPT', 'OpenAI 对话')).toBe(false)
+  })
+
+  it('treats empty query as always matching', () => {
+    expect(matchesQuery('', 'anything')).toBe(true)
+  })
+
+  it('is case-insensitive on both sides', () => {
+    // 调用方约定传入 trim + toLowerCase 后的 q；字段侧由函数内统一 toLowerCase
+    expect(matchesQuery('midjourney', 'Midjourney')).toBe(true)
   })
 })
 
