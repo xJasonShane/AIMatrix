@@ -3,7 +3,7 @@
     {
       "id": "chat",
       "name": "对话助手",
-      "color": "#00ff41",
+      "color": "#b4553f",
       "links": [
         { "id": "gpt", "name": "ChatGPT", "url": "https://chatgpt.com", "description": "OpenAI 对话助手" },
         { "id": "claude", "name": "Claude", "url": "https://claude.ai", "description": "Anthropic 对话助手" },
@@ -14,7 +14,7 @@
     {
       "id": "image",
       "name": "绘画生成",
-      "color": "#ff2bd6",
+      "color": "#9a7f4f",
       "links": [
         { "id": "midjourney", "name": "Midjourney", "url": "https://www.midjourney.com", "description": "高质量图像生成" },
         { "id": "stable-diffusion", "name": "Stable Diffusion", "url": "https://stability.ai", "description": "开源图像模型" },
@@ -24,7 +24,7 @@
     {
       "id": "code",
       "name": "编程工具",
-      "color": "#00d4ff",
+      "color": "#5b7d78",
       "links": [
         { "id": "github-copilot", "name": "GitHub Copilot", "url": "https://github.com/features/copilot", "description": "代码补全" },
         { "id": "cursor", "name": "Cursor", "url": "https://cursor.com", "description": "AI 代码编辑器" },
@@ -34,7 +34,7 @@
     {
       "id": "audio-video",
       "name": "音视频",
-      "color": "#ffb800",
+      "color": "#8a6d9e",
       "links": [
         { "id": "suno", "name": "Suno", "url": "https://suno.com", "description": "AI 音乐生成" },
         { "id": "runway", "name": "Runway", "url": "https://runwayml.com", "description": "AI 视频生成" },
@@ -44,7 +44,7 @@
     {
       "id": "search-knowledge",
       "name": "搜索与知识",
-      "color": "#9d6bff",
+      "color": "#7a8a55",
       "links": [
         { "id": "perplexity", "name": "Perplexity", "url": "https://www.perplexity.ai", "description": "AI 搜索引擎" },
         { "id": "notebooklm", "name": "NotebookLM", "url": "https://notebooklm.google.com", "description": "知识笔记助手" },

@@ -30,7 +30,7 @@ export function RadialTree({ data, width, height }: Props) {
           stroke={c.color}
           strokeWidth={hovered === c.id ? 2.5 : 1.2}
           fill="none"
-          opacity={hovered && hovered !== c.id ? 0.12 : 0.5}
+          opacity={hovered && hovered !== c.id ? 0.2 : 0.65}
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 0.6, delay: 0.15 + i * 0.08 }}
@@ -48,7 +48,7 @@ export function RadialTree({ data, width, height }: Props) {
             stroke={l.color}
             strokeWidth={active ? 1.8 : 0.9}
             fill="none"
-            opacity={hovered && !active ? 0.08 : active ? 0.75 : 0.35}
+            opacity={hovered && !active ? 0.15 : active ? 0.85 : 0.5}
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 0.5, delay: 0.55 }}
@@ -59,7 +59,7 @@ export function RadialTree({ data, width, height }: Props) {
       {/* root node */}
       <g className="tree-root">
         <circle cx={layout.root.x} cy={layout.root.y} r={46} className="root-ring pulse" />
-        <circle cx={layout.root.x} cy={layout.root.y} r={34} fill="#04120a" stroke="#00ff41" strokeWidth={1.5} />
+        <circle cx={layout.root.x} cy={layout.root.y} r={34} className="tree-root-circle" />
         <text x={layout.root.x} y={layout.root.y + 4} textAnchor="middle" className="root-label">MATRIX</text>
       </g>
 
@@ -98,14 +98,14 @@ export function RadialTree({ data, width, height }: Props) {
             style={{ transformOrigin: `${l.x}px ${l.y}px`, cursor: 'pointer' }}
           >
             <title>{l.name}</title>
-            <circle cx={l.x} cy={l.y} r={5} fill="#0a0e12" stroke={l.color} strokeWidth={2} />
+            <circle cx={l.x} cy={l.y} r={5} className="tree-link-circle" stroke={l.color} strokeWidth={2} />
             {showLinkLabels && showLabel && (
               <text
                 x={l.x + Math.cos(l.angle) * 14}
                 y={l.y + Math.sin(l.angle) * 14 + 4}
                 textAnchor={Math.cos(l.angle) > 0.1 ? 'start' : Math.cos(l.angle) < -0.1 ? 'end' : 'middle'}
                 className="link-label"
-                fill={active ? '#eaf2f7' : '#8fa1ad'}
+                fill={active ? '#2b2620' : '#6f6455'}
               >
                 {l.name}
               </text>

@@ -16,7 +16,7 @@ export interface RadialLayout {
   links: (LayoutNode & { categoryId: string; url: string })[]
 }
 
-export const DEFAULT_COLOR = '#00ff41'
+export const DEFAULT_COLOR = '#7a8a55'
 
 export function computeLayout(data: NavData, width: number, height: number): RadialLayout {
   const cx = width / 2

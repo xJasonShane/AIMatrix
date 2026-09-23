@@ -1,7 +1,7 @@
 import type { NavCategory } from '../../data/schema'
 import { LinkCard } from './LinkCard'
 
-const DEFAULT_COLOR = '#00ff41'
+const DEFAULT_COLOR = '#7a8a55'
 
 interface Props {
   category: NavCategory
