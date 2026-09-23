@@ -1,14 +1,48 @@
+import { useEffect } from 'react'
 import { LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { NavProvider, useNav } from './store/useNavStore'
 import { DataError } from './components/shared/DataError'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { NavPage } from './pages/NavPage'
 import { MatrixPage } from './pages/MatrixPage'
 
+/** 快捷键守卫：输入控件聚焦或组合键按下时不触发（避免劫持正常键入） */
+function isTypingTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+  )
+}
+
 function Shell() {
   const { error } = useNav()
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // GitHub 风格 g 序列快捷键：g→n 导航视图，g→m 矩阵视图（1.5s 内需跟上第二个键）
+  useEffect(() => {
+    let armed = false
+    let timer = 0
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return
+      if (e.key === 'g') {
+        armed = true
+        window.clearTimeout(timer)
+        timer = window.setTimeout(() => (armed = false), 1500)
+      } else if (armed && (e.key === 'n' || e.key === 'm')) {
+        armed = false
+        window.clearTimeout(timer)
+        navigate(e.key === 'n' ? '/nav' : '/matrix')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.clearTimeout(timer)
+    }
+  }, [navigate])
+
   if (error) return <DataError message={error} />
   return (
     <>

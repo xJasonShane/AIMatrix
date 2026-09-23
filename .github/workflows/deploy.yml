@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      # 构建前强制校验唯一数据文件（含真实 navigation.json 的有效性断言）
+      - run: npm run validate:data
       - run: npm run build
       # 包体积守卫：JS gzip 超过预算（300 kB）即失败，防止依赖膨胀回归
       - run: npm run check:size

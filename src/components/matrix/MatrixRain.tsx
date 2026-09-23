@@ -87,8 +87,18 @@ export function MatrixRain() {
       raf = requestAnimationFrame(tick)
     }
 
+    // rAF 合并：同一帧内的连续 resize 事件只执行一次重设（与 MatrixPage 尺寸测量节流同一模式）
+    let resizeFrame = 0
+    const onResize = () => {
+      if (resizeFrame) return
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0
+        resize()
+      })
+    }
+
     resize()
-    window.addEventListener('resize', resize)
+    window.addEventListener('resize', onResize)
 
     if (prefersReduced) {
       drawStatic()
@@ -111,7 +121,8 @@ export function MatrixRain() {
     return () => {
       running = false
       cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
+      cancelAnimationFrame(resizeFrame)
+      window.removeEventListener('resize', onResize)
       cleanupVisibility()
     }
   }, [prefersReduced])

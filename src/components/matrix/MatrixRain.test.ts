@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, act, cleanup } from '@testing-library/react'
+import { render, act, cleanup, fireEvent } from '@testing-library/react'
 import { createElement } from 'react'
 import { columnCount, prefersReducedMotion, MatrixRain } from './MatrixRain'
+
+/** 等一帧：让 rAF 合并回调执行（包在 act 内避免状态更新警告） */
+const flushFrame = () =>
+  act(async () => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  })
 
 afterEach(() => {
   cleanup()
@@ -61,5 +67,35 @@ describe('MatrixRain reduced-motion', () => {
     // 偏好切换即时生效：立即重绘静止点阵
     expect(ctxStub.clearRect).toHaveBeenCalled()
     expect(ctxStub.fillText).toHaveBeenCalled()
+  })
+
+  it('coalesces rapid resize events into one canvas relayout per frame', async () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    const ctxStub = {
+      setTransform: vi.fn(),
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      fillText: vi.fn(),
+      font: '',
+      fillStyle: '',
+    }
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(ctxStub as never)
+
+    render(createElement(MatrixRain))
+    // 初始挂载执行一次尺寸设置（setTransform 一次）
+    expect(ctxStub.setTransform).toHaveBeenCalledTimes(1)
+
+    // 同一帧内连续触发多次 resize：同步阶段不重复计算
+    fireEvent(window, new Event('resize'))
+    fireEvent(window, new Event('resize'))
+    expect(ctxStub.setTransform).toHaveBeenCalledTimes(1)
+
+    // 下一帧仅合并重算一次
+    await flushFrame()
+    expect(ctxStub.setTransform).toHaveBeenCalledTimes(2)
   })
 })

@@ -1,0 +1,24 @@
+{
+  "name": "AI Matrix · 个人 AI 工具矩阵",
+  "short_name": "AI Matrix",
+  "description": "个人 AI 工具导航矩阵：导航视图与黑客帝国风格径向矩阵视图一键切换。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7efd9",
+  "theme_color": "#f7efd9",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

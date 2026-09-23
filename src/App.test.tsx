@@ -1,5 +1,5 @@
 import { it, expect, describe, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
@@ -72,6 +72,34 @@ describe('App shell', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     expect(screen.getByRole('dialog')).toBeTruthy()
+    fireEvent.keyDown(window, { key: 'Escape' })
+  })
+
+  it('switches views with the g+n / g+m keyboard shortcuts', async () => {
+    renderApp('/nav')
+    // g→m：跳到矩阵视图
+    fireEvent.keyDown(window, { key: 'g' })
+    fireEvent.keyDown(window, { key: 'm' })
+    await waitFor(() => expect(screen.getByRole('button', { name: '进入全屏' })).toBeTruthy())
+    // g→n：跳回导航视图
+    fireEvent.keyDown(window, { key: 'g' })
+    fireEvent.keyDown(window, { key: 'n' })
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeTruthy(),
+    )
+  })
+
+  it('ignores the g shortcut while a text field is focused', () => {
+    renderApp('/nav')
+    // 打开命令面板并聚焦其输入框（模拟用户正在输入）
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+    const paletteInput = screen.getByRole('combobox')
+    paletteInput.focus()
+    expect(document.activeElement).toBe(paletteInput)
+    // 输入控件内的 g、m 不应触发视图切换，也不应被 preventDefault 拦截
+    fireEvent.keyDown(paletteInput, { key: 'g' })
+    fireEvent.keyDown(paletteInput, { key: 'm' })
+    expect(screen.getByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeTruthy()
     fireEvent.keyDown(window, { key: 'Escape' })
   })
 

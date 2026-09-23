@@ -90,8 +90,11 @@ src/
 
 - **性能**：矩阵雨单 `requestAnimationFrame` 循环、`devicePixelRatio` 适配，页面不可见时暂停，`prefers-reduced-motion` 时降级为静止点阵，切走视图即卸载。
 - **响应式**：卡片网格 `auto-fill / minmax(240px, 1fr)`；径向树半径自适应窗口尺寸与节点数，resize 防抖重算；标签防重叠处理。
-- **可访问性**：键盘焦点描边、`reducedMotion` 遵循系统设置。
-- **健壮性**：localStorage 不可用（隐私模式）时自动降级为内存存储。
+- **可访问性**：键盘焦点描边、`reducedMotion` 遵循系统设置（运行时切换即时生效）。
+- **键盘快捷键**：`Ctrl/Cmd+K` 命令面板、`/` 聚焦搜索框、`g n` / `g m` 切换视图（GitHub 风格序列键）。
+- **PWA**：`public/manifest.webmanifest` 支持将站点添加到主屏幕 / 独立窗口打开（纯静态，无需 Service Worker）。
+- **健壮性**：localStorage 不可用（隐私模式）时自动降级为内存存储；非法分类色自动回落默认色。
+- **质量门禁**：CI 依次执行 lint → 单元测试 → 数据校验 → 构建 → 包体积守卫（JS gzip ≤ 300 kB）；依赖更新由 Dependabot 每周自动发起。
 
 ## 设计文档
 

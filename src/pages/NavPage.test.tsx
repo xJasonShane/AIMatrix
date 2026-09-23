@@ -21,6 +21,12 @@ const renderNavPage = () =>
     </LazyMotion>,
   )
 
+it('focuses the search box on the / shortcut', () => {
+  renderNavPage()
+  fireEvent.keyDown(window, { key: '/' })
+  expect(document.activeElement).toBe(screen.getByPlaceholderText('搜索工具名称或描述…'))
+})
+
 it('renders one card per link', () => {
   renderNavPage()
   expect(document.querySelectorAll('.link-card').length).toBe(count)

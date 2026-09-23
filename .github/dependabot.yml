@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # npm 依赖：每周检查，CI（lint/test/build/check:size）保证升级不破坏构建
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  # GitHub Actions：保持 CI/部署工作流版本更新
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies

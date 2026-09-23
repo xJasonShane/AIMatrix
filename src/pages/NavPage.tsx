@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { m } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
@@ -13,20 +13,45 @@ export function NavPage() {
   const { data, error } = useNav()
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // GitHub 风格快捷键："/" 聚焦搜索框（输入控件内按下不拦截，交由默认行为）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return
+      const t = e.target
+      if (
+        t instanceof HTMLElement &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+      )
+        return
+      e.preventDefault()
+      searchRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   /** 按名称 / 描述即时过滤；搜索时忽略折叠状态，只显示有命中的分类 */
-  const visibleCategories: NavCategory[] = q
-    ? data.categories
-        .map((c) => ({
-          ...c,
-          links: c.links.filter(
-            (l) =>
-              l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
-          ),
-        }))
-        .filter((c) => c.links.length > 0)
-    : data.categories
-  const matchedCount = visibleCategories.reduce((n, c) => n + c.links.length, 0)
+  const visibleCategories = useMemo<NavCategory[]>(
+    () =>
+      q
+        ? data.categories
+            .map((c) => ({
+              ...c,
+              links: c.links.filter(
+                (l) =>
+                  l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q),
+              ),
+            }))
+            .filter((c) => c.links.length > 0)
+        : data.categories,
+    [data, q],
+  )
+  const matchedCount = useMemo(
+    () => visibleCategories.reduce((n, c) => n + c.links.length, 0),
+    [visibleCategories],
+  )
 
   /** 最近使用：点击链接后通过事件订阅即时刷新（无需重新进入页面） */
   const [recentIds, setRecentIds] = useState<string[]>(() => getRecentLinks())
@@ -44,8 +69,13 @@ export function NavPage() {
       .slice(0, 6)
   }, [q, data, recentIds])
 
-  const categoryCount = data.categories.length
-  const toolCount = data.categories.reduce((n, c) => n + c.links.length, 0)
+  const { categoryCount, toolCount } = useMemo(
+    () => ({
+      categoryCount: data.categories.length,
+      toolCount: data.categories.reduce((n, c) => n + c.links.length, 0),
+    }),
+    [data],
+  )
 
   return (
     <div className="page page-nav flex min-h-full flex-col">
@@ -107,6 +137,7 @@ export function NavPage() {
               <path d="M10.5 10.5 14 14" />
             </svg>
             <input
+              ref={searchRef}
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
