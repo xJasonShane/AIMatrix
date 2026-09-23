@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
+import { pushRecentLink } from '../../store/uiPrefs'
 
 interface Props {
   data: NavData
@@ -42,6 +43,19 @@ export function RadialTree({ data, width, height }: Props) {
 
   return (
     <svg className="radial-tree" width={width} height={height} role="img" aria-label="AI 工具矩阵树">
+      {/* 背景捕获层：点击空白处清除 hover / 固定高亮（触屏无 mouseleave，靠此复位） */}
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        fill="transparent"
+        onClick={() => {
+          setHovered(null)
+          setPinnedCatId(null)
+        }}
+      />
+
       {/* 星图刻度盘底纹：同心虚线参考圆 */}
       <circle className="ref-circle" cx={layout.root.x} cy={layout.root.y} r={layout.radii.cat} />
       <circle className="ref-circle" cx={layout.root.x} cy={layout.root.y} r={layout.radii.link} />
@@ -154,7 +168,8 @@ export function RadialTree({ data, width, height }: Props) {
             <title>{l.name}</title>
             <circle cx={l.x} cy={l.y} r={10} fill={l.color} className="link-node-glow" opacity={0} />
             <circle cx={l.x} cy={l.y} r={5} className="link-node-circle" stroke={l.color} strokeWidth={2} />
-            {showLinkLabels && showLabel && !isHot && (
+            {/* 移动端（<640px）默认无标签，但活动/固定分支仍显示，保证触屏可用 */}
+            {(showLinkLabels || active) && showLabel && !isHot && (
               <text
                 x={l.x + Math.cos(l.angle) * 14}
                 y={l.y + Math.sin(l.angle) * 14 + 4}
@@ -189,6 +204,7 @@ export function RadialTree({ data, width, height }: Props) {
                 className="tree-link-node"
                 {...nodeHandlers}
                 {...nodeAnim}
+                onClick={() => pushRecentLink(l.id)}
               >
                 {nodeInner}
               </motion.a>

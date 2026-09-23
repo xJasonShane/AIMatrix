@@ -1,22 +1,25 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { NavCategory } from '../../data/schema'
+import { useCollapse } from '../../store/useNavStore'
 import { LinkCard } from './LinkCard'
 
 const DEFAULT_COLOR = '#7a8a55'
 
 interface Props {
   category: NavCategory
-  collapsed: boolean
-  onToggle: () => void
+  /** 搜索模式下强制展开并忽略折叠切换 */
+  forceOpen?: boolean
 }
 
-export function CategorySection({ category, collapsed, onToggle }: Props) {
+export function CategorySection({ category, forceOpen = false }: Props) {
+  const { isCollapsed, toggleCollapse } = useCollapse()
   const color = category.color ?? DEFAULT_COLOR
+  const collapsed = !forceOpen && isCollapsed(category.id)
   return (
     <section className="category mb-9" data-collapsed={collapsed} style={{ ['--cat' as string]: color }}>
       <button
         className="category-head flex w-full cursor-pointer items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-ink"
-        onClick={onToggle}
+        onClick={forceOpen ? undefined : () => toggleCollapse(category.id)}
         aria-expanded={!collapsed}
       >
         <span className="category-tape" aria-hidden />

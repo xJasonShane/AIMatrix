@@ -1,4 +1,6 @@
+import { memo } from 'react'
 import type { NavLink } from '../../data/schema'
+import { pushRecentLink } from '../../store/uiPrefs'
 
 interface Props {
   link: NavLink
@@ -54,7 +56,7 @@ function CardInner({
   )
 }
 
-export function LinkCard({ link, color, index }: Props) {
+export const LinkCard = memo(function LinkCard({ link, color, index }: Props) {
   const valid = /^https?:\/\//.test(link.url)
 
   if (!valid) {
@@ -76,9 +78,10 @@ export function LinkCard({ link, color, index }: Props) {
       href={link.url}
       target="_blank"
       rel="noreferrer"
+      onClick={() => pushRecentLink(link.id)}
       style={{ ['--cat' as string]: color }}
     >
       <CardInner link={link} color={color} showDomain />
     </a>
   )
-}
+})

@@ -2,10 +2,13 @@ const memory = new Map<string, string>()
 
 function safeGet(key: string): string | null {
   try {
-    return localStorage.getItem(key)
+    const v = localStorage.getItem(key)
+    if (v !== null) return v
   } catch {
-    return memory.get(key) ?? null
+    /* fall through to memory */
   }
+  // localStorage 不可用时读取内存回退值（如隐私模式下仅 setItem 被禁）
+  return memory.get(key) ?? null
 }
 
 function safeSet(key: string, value: string): void {
@@ -22,4 +25,25 @@ export const uiPrefs = {
   set: safeSet,
   KEY_COLLAPSED: 'aimatrix:collapsed',
   KEY_FULLSCREEN: 'aimatrix:fullscreen',
+  KEY_RECENT: 'aimatrix:recent',
+}
+
+function readJsonArray(key: string): string[] {
+  try {
+    const arr = JSON.parse(uiPrefs.get(key) ?? '[]')
+    return Array.isArray(arr) ? (arr as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+/** 记录最近打开的链接：去重置顶，最多保留 max 条 */
+export function pushRecentLink(id: string, max = 6): void {
+  const next = [id, ...readJsonArray(uiPrefs.KEY_RECENT).filter((x) => x !== id)].slice(0, max)
+  uiPrefs.set(uiPrefs.KEY_RECENT, JSON.stringify(next))
+}
+
+/** 读取最近打开的链接 id 列表（最新在前） */
+export function getRecentLinks(): string[] {
+  return readJsonArray(uiPrefs.KEY_RECENT)
 }

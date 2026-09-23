@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
+import { LinkCard } from '../components/nav/LinkCard'
 import { useNav } from '../store/useNavStore'
-import type { NavCategory } from '../data/schema'
+import { getRecentLinks } from '../store/uiPrefs'
+import type { NavCategory, NavLink } from '../data/schema'
+
+const DEFAULT_COLOR = '#7a8a55'
 
 export function NavPage() {
-  const { data, error, isCollapsed, toggleCollapse } = useNav()
+  const { data, error } = useNav()
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
 
@@ -24,6 +28,20 @@ export function NavPage() {
         .filter((c) => c.links.length > 0)
     : data.categories
   const matchedCount = visibleCategories.reduce((n, c) => n + c.links.length, 0)
+
+  /** 最近使用：进入页面时读取一次，点击新链接后下次到访生效 */
+  const recentLinks = useMemo(() => {
+    if (q) return []
+    const map = new Map<string, { link: NavLink; color: string }>()
+    data.categories.forEach((c) =>
+      c.links.forEach((l) => map.set(l.id, { link: l, color: c.color ?? DEFAULT_COLOR })),
+    )
+    return getRecentLinks()
+      .map((id) => map.get(id))
+      .filter((x): x is { link: NavLink; color: string } => Boolean(x))
+      .slice(0, 6)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, data])
 
   const categoryCount = data.categories.length
   const toolCount = data.categories.reduce((n, c) => n + c.links.length, 0)
@@ -104,6 +122,11 @@ export function NavPage() {
                 </svg>
               </button>
             )}
+            {!q && (
+              <kbd className="pointer-events-none shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">
+                Ctrl K
+              </kbd>
+            )}
           </motion.div>
 
           {/* 赭橙印章点缀 */}
@@ -126,13 +149,28 @@ export function NavPage() {
             没有匹配「{query.trim()}」的工具 —— 试试其他关键词。
           </p>
         )}
+        {/* 最近使用（仅非搜索状态展示） */}
+        {recentLinks.length > 0 && (
+          <section className="category mb-9" style={{ ['--cat' as string]: 'var(--color-accent)' }}>
+            <div className="flex items-center gap-3 px-0 py-1.5">
+              <span className="category-tape" aria-hidden />
+              <h2 className="category-name m-0 font-serif text-[19px] font-bold tracking-wide text-ink">
+                最近使用
+              </h2>
+              <span className="category-count" style={{ color: 'var(--color-accent)' }}>
+                {recentLinks.length}
+              </span>
+            </div>
+            <div className="category-rule" aria-hidden />
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 pt-3.5">
+              {recentLinks.map(({ link, color }, i) => (
+                <LinkCard key={link.id} link={link} color={color} index={i} />
+              ))}
+            </div>
+          </section>
+        )}
         {visibleCategories.map((c) => (
-          <CategorySection
-            key={c.id}
-            category={c}
-            collapsed={q ? false : isCollapsed(c.id)}
-            onToggle={q ? () => {} : () => toggleCollapse(c.id)}
-          />
+          <CategorySection key={c.id} category={c} forceOpen={q !== ''} />
         ))}
       </main>
 

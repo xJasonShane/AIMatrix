@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { NavProvider } from '../store/useNavStore'
 import { NavPage } from './NavPage'
@@ -22,4 +22,16 @@ it('opens links in a new tab', () => {
   const chatgpt = screen.getByRole('link', { name: /ChatGPT/ })
   expect(chatgpt).toHaveAttribute('target', '_blank')
   expect(chatgpt).toHaveAttribute('rel', 'noreferrer')
+})
+
+it('filters cards by search query and shows an empty state', () => {
+  render(
+    <MemoryRouter><NavProvider><NavPage /></NavProvider></MemoryRouter>,
+  )
+  const input = screen.getByPlaceholderText('搜索工具名称或描述…')
+  fireEvent.change(input, { target: { value: 'chatgpt' } })
+  expect(document.querySelectorAll('.link-card').length).toBe(1)
+  fireEvent.change(input, { target: { value: 'zzz 不存在' } })
+  expect(document.querySelectorAll('.link-card').length).toBe(0)
+  expect(screen.getByText(/没有匹配/)).toBeTruthy()
 })

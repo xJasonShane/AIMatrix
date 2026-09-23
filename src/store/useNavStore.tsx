@@ -12,11 +12,16 @@ interface NavContextValue {
   data: NavData
   error: string | null
   angles: AngleRange[]
+}
+
+/** 折叠状态独立成 context：切换折叠不再触发消费 data 的组件重渲染 */
+interface CollapseContextValue {
   isCollapsed: (categoryId: string) => boolean
   toggleCollapse: (categoryId: string) => void
 }
 
 const NavContext = createContext<NavContextValue | null>(null)
+const CollapseContext = createContext<CollapseContextValue | null>(null)
 
 function readCollapsed(): Set<string> {
   const rawPref = uiPrefs.get(uiPrefs.KEY_COLLAPSED)
@@ -49,19 +54,32 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  const value = useMemo<NavContextValue>(() => ({
+  const navValue = useMemo<NavContextValue>(() => ({
     data: parsed ?? { categories: [] },
     error,
     angles: parsed ? categoryAngleRanges(parsed.categories) : [],
+  }), [parsed, error])
+
+  const collapseValue = useMemo<CollapseContextValue>(() => ({
     isCollapsed: (id) => collapsed.has(id),
     toggleCollapse,
-  }), [parsed, error, collapsed, toggleCollapse])
+  }), [collapsed, toggleCollapse])
 
-  return <NavContext.Provider value={value}>{children}</NavContext.Provider>
+  return (
+    <NavContext.Provider value={navValue}>
+      <CollapseContext.Provider value={collapseValue}>{children}</CollapseContext.Provider>
+    </NavContext.Provider>
+  )
 }
 
 export function useNav(): NavContextValue {
   const ctx = useContext(NavContext)
   if (!ctx) throw new Error('useNav must be used within NavProvider')
+  return ctx
+}
+
+export function useCollapse(): CollapseContextValue {
+  const ctx = useContext(CollapseContext)
+  if (!ctx) throw new Error('useCollapse must be used within NavProvider')
   return ctx
 }

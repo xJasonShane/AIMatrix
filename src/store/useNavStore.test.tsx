@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { NavProvider, useNav } from './useNavStore'
+import { NavProvider, useNav, useCollapse } from './useNavStore'
 import raw from '../data/navigation.json'
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -25,7 +25,7 @@ describe('useNavStore', () => {
   })
 
   it('stores collapsed categories in localStorage', () => {
-    const { result } = renderHook(() => useNav(), { wrapper })
+    const { result } = renderHook(() => useCollapse(), { wrapper })
     expect(result.current.isCollapsed('chat')).toBe(false)
     act(() => result.current.toggleCollapse('chat'))
     expect(result.current.isCollapsed('chat')).toBe(true)
@@ -36,7 +36,7 @@ describe('useNavStore', () => {
     const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked')
     })
-    const { result } = renderHook(() => useNav(), { wrapper })
+    const { result } = renderHook(() => useCollapse(), { wrapper })
     expect(() => act(() => result.current.toggleCollapse('chat'))).not.toThrow()
     spy.mockRestore()
   })
