@@ -1,9 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import type { NavCategory } from '../../data/schema'
+import { DEFAULT_COLOR, type NavCategory } from '../../data/schema'
 import { useCollapse } from '../../store/useNavStore'
 import { LinkCard } from './LinkCard'
-
-const DEFAULT_COLOR = '#7a8a55'
 
 interface Props {
   category: NavCategory

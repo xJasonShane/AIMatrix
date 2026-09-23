@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNav } from '../../store/useNavStore'
-
-const DEFAULT_COLOR = '#7a8a55'
+import { DEFAULT_COLOR } from '../../data/schema'
 
 interface PaletteAction {
   id: string
@@ -22,12 +21,14 @@ export function CommandPalette() {
   const [activeIdx, setActiveIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Ctrl/Cmd+K 开关，Esc 关闭
+  // Ctrl/Cmd+K 开关，Esc 关闭；打开/关闭时重置搜索状态（事件处理器中重置，避免 effect 内 setState）
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setOpen((o) => !o)
+        setQuery('')
+        setActiveIdx(0)
       } else if (e.key === 'Escape') {
         setOpen(false)
       }
@@ -38,8 +39,6 @@ export function CommandPalette() {
 
   useEffect(() => {
     if (open) {
-      setQuery('')
-      setActiveIdx(0)
       const t = window.setTimeout(() => inputRef.current?.focus(), 0)
       return () => window.clearTimeout(t)
     }

@@ -3,7 +3,6 @@ import { AppHeader } from '../components/shared/AppHeader'
 import { MatrixRain } from '../components/matrix/MatrixRain'
 import { RadialTree } from '../components/matrix/RadialTree'
 import { useNav } from '../store/useNavStore'
-import { uiPrefs } from '../store/uiPrefs'
 
 export function MatrixPage() {
   const { data } = useNav()
@@ -33,11 +32,8 @@ export function MatrixPage() {
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
       void document.exitFullscreen()
-      uiPrefs.set(uiPrefs.KEY_FULLSCREEN, 'false')
     } else {
       void document.documentElement.requestFullscreen().catch(() => {})
-      // 浏览器安全策略禁止无用户手势时自动进入全屏，故仅记录偏好不自动应用
-      uiPrefs.set(uiPrefs.KEY_FULLSCREEN, 'true')
     }
   }
 

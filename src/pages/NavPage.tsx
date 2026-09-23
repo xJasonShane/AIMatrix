@@ -6,9 +6,8 @@ import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav } from '../store/useNavStore'
 import { getRecentLinks } from '../store/uiPrefs'
+import { DEFAULT_COLOR } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
-
-const DEFAULT_COLOR = '#7a8a55'
 
 export function NavPage() {
   const { data, error } = useNav()
@@ -40,7 +39,6 @@ export function NavPage() {
       .map((id) => map.get(id))
       .filter((x): x is { link: NavLink; color: string } => Boolean(x))
       .slice(0, 6)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, data])
 
   const categoryCount = data.categories.length

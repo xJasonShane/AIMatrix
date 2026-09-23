@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateNavData, categoryAngleRanges } from './schema'
+import { validateNavData, categoryAngleRanges, isValidUrl } from './schema'
 import raw from './navigation.json'
 
 const good = {
@@ -48,6 +48,15 @@ describe('categoryAngleRanges', () => {
     const one = { categories: [{ id: 'c', name: 'C', links: [{ id: 'l', name: 'L', url: 'https://a.com', description: '' }] }] }
     const ranges = categoryAngleRanges(one.categories)
     expect(ranges[0].end - ranges[0].start).toBeCloseTo(Math.PI * 2, 5)
+  })
+})
+
+describe('isValidUrl', () => {
+  it('accepts http/https urls only', () => {
+    expect(isValidUrl('https://a.com')).toBe(true)
+    expect(isValidUrl('http://a.com')).toBe(true)
+    expect(isValidUrl('ftp://a.com')).toBe(false)
+    expect(isValidUrl('not a url')).toBe(false)
   })
 })
 

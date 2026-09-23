@@ -24,7 +24,6 @@ export const uiPrefs = {
   get: safeGet,
   set: safeSet,
   KEY_COLLAPSED: 'aimatrix:collapsed',
-  KEY_FULLSCREEN: 'aimatrix:fullscreen',
   KEY_RECENT: 'aimatrix:recent',
 }
 

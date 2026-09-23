@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import type { NavData } from '../../data/schema'
+import { isValidUrl, type NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
 import { pushRecentLink } from '../../store/uiPrefs'
 
@@ -42,7 +42,7 @@ export function RadialTree({ data, width, height }: Props) {
   }
 
   return (
-    <svg className="radial-tree" width={width} height={height} role="img" aria-label="AI 工具矩阵树">
+    <svg className="radial-tree" width={width} height={height} role="group" aria-label="AI 工具矩阵树">
       {/* 背景捕获层：点击空白处清除 hover / 固定高亮（触屏无 mouseleave，靠此复位） */}
       <rect
         x={0}
@@ -156,7 +156,7 @@ export function RadialTree({ data, width, height }: Props) {
         const active = activeCatId === l.categoryId
         const showLabel = !hovered || active
         const isHot = hovered === `link:${l.id}`
-        const valid = /^https?:\/\//.test(l.url)
+        const valid = isValidUrl(l.url)
         const flip = Math.cos(l.angle) < -0.15 // 左半圆向左展开
         const popW = 190
         const popH = 60

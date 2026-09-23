@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { NavLink } from '../../data/schema'
+import { isValidUrl, type NavLink } from '../../data/schema'
 import { pushRecentLink } from '../../store/uiPrefs'
 
 interface Props {
@@ -57,7 +57,7 @@ function CardInner({
 }
 
 export const LinkCard = memo(function LinkCard({ link, color, index }: Props) {
-  const valid = /^https?:\/\//.test(link.url)
+  const valid = isValidUrl(link.url)
 
   if (!valid) {
     return (

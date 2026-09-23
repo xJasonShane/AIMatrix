@@ -1,5 +1,5 @@
 import type { NavData } from '../../data/schema'
-import { categoryAngleRanges } from '../../data/schema'
+import { categoryAngleRanges, DEFAULT_COLOR } from '../../data/schema'
 
 export interface LayoutNode {
   id: string
@@ -17,8 +17,6 @@ export interface RadialLayout {
   /** 分类环 / 叶环半径，供参考圆底纹使用 */
   radii: { cat: number; link: number }
 }
-
-export const DEFAULT_COLOR = '#7a8a55'
 
 export function computeLayout(data: NavData, width: number, height: number): RadialLayout {
   const cx = width / 2

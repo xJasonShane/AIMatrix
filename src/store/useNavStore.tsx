@@ -48,7 +48,11 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
   const toggleCollapse = useCallback((id: string) => {
     setCollapsed((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       uiPrefs.set(uiPrefs.KEY_COLLAPSED, JSON.stringify([...next]))
       return next
     })
