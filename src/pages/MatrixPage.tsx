@@ -60,7 +60,7 @@ export function MatrixPage() {
       <div className="matrix-vignette" aria-hidden="true" />
       <div className="matrix-overlay">
         <AppHeader view="matrix" />
-        <main className="matrix-main" ref={mainRef}>
+        <main className="matrix-main" ref={mainRef} id="main-content">
           {size && <RadialTree data={data} width={size.width} height={size.height} />}
           <button
             type="button"

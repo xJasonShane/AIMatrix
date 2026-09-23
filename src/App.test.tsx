@@ -49,6 +49,13 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeTruthy()
   })
 
+  it('provides a skip link targeting the main content', () => {
+    renderApp('/nav')
+    const skip = screen.getByRole('link', { name: '跳到主内容' })
+    expect(skip).toHaveAttribute('href', '#main-content')
+    expect(document.getElementById('main-content')).toBeTruthy()
+  })
+
   it('redirects unknown routes to the nav view', () => {
     renderApp('/does-not-exist')
     expect(screen.getByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeTruthy()
@@ -57,6 +64,7 @@ describe('App shell', () => {
   it('renders the matrix view at /matrix', () => {
     renderApp('/matrix')
     expect(screen.getByRole('button', { name: '进入全屏' })).toBeTruthy()
+    expect(document.getElementById('main-content')).toBeTruthy()
   })
 
   it('mounts the command palette outside the routed container', () => {

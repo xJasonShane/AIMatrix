@@ -12,6 +12,10 @@ function Shell() {
   if (error) return <DataError message={error} />
   return (
     <>
+      {/* 键盘用户 Tab 首站：跳到主内容（置于按路由 key 的容器之外，避免切视图时重挂载） */}
+      <a href="#main-content" className="skip-link">
+        跳到主内容
+      </a>
       <m.div
         key={location.pathname}
         initial={{ opacity: 0, y: 8 }}

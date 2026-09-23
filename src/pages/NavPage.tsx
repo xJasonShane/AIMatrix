@@ -51,7 +51,10 @@ export function NavPage() {
     <div className="page page-nav flex min-h-full flex-col">
       <AppHeader view="nav" />
 
-      <main className="nav-main mx-auto w-[min(1160px,100%-48px)] flex-1 pb-16 pt-8">
+      <main
+        id="main-content"
+        className="nav-main mx-auto w-[min(1160px,100%-48px)] flex-1 pb-16 pt-8"
+      >
         {/* Hero */}
         <m.section
           className="relative mb-10 border-b border-line pb-7"
@@ -130,6 +133,11 @@ export function NavPage() {
             )}
           </m.div>
 
+          {/* 即时搜索：结果数通过 aria-live 向读屏播报（区域常驻 DOM，仅内容变化） */}
+          <p className="sr-only" aria-live="polite">
+            {q ? (matchedCount > 0 ? `找到 ${matchedCount} 个匹配工具` : '没有找到匹配的工具') : ''}
+          </p>
+
           {/* 赭橙印章点缀 */}
           <span
             className="absolute bottom-6 right-0 grid h-9 w-9 place-items-center rounded-[4px] border-2 border-accent/70 font-serif text-[10px] font-bold leading-[1.1] text-accent/80"
@@ -152,7 +160,7 @@ export function NavPage() {
         )}
         {/* 最近使用（仅非搜索状态展示） */}
         {recentLinks.length > 0 && (
-          <section className="category mb-9" style={{ ['--cat' as string]: 'var(--color-accent)' }}>
+          <section className="category mb-9" aria-label="最近使用" style={{ ['--cat' as string]: 'var(--color-accent)' }}>
             <div className="flex items-center gap-3 px-0 py-1.5">
               <span className="category-tape" aria-hidden />
               <h2 className="category-name m-0 font-serif text-[19px] font-bold tracking-wide text-ink">
