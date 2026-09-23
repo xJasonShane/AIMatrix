@@ -200,4 +200,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .root-ticks { animation: none; }
+  .root-ring.pulse { animation: none; }
 }

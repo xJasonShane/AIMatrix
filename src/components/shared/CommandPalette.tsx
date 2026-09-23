@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNav } from '../../store/useNavStore'
-import { DEFAULT_COLOR } from '../../data/schema'
+import { DEFAULT_COLOR, isValidUrl } from '../../data/schema'
+import { pushRecentLink } from '../../store/uiPrefs'
 
 interface PaletteAction {
   id: string
@@ -82,13 +83,20 @@ export function CommandPalette() {
       { id: 'view-matrix', name: '矩阵视图', description: '切换到径向矩阵树页', kind: '视图', run: () => navigate('/matrix') },
     ]
     const links: PaletteAction[] = data.categories.flatMap((c) =>
-      c.links.map((l) => ({
-        id: `link-${l.id}`,
-        name: l.name,
-        description: `${c.name}${l.description ? ' · ' + l.description : ''}`,
-        kind: '链接' as const,
-        run: () => window.open(l.url, '_blank', 'noopener'),
-      })),
+      c.links
+        // 非法 URL 与 LinkCard / 矩阵节点保持同一策略：不在面板中提供打开入口
+        .filter((l) => isValidUrl(l.url))
+        .map((l) => ({
+          id: `link-${l.id}`,
+          name: l.name,
+          description: `${c.name}${l.description ? ' · ' + l.description : ''}`,
+          kind: '链接' as const,
+          run: () => {
+            // 与 LinkCard / RadialTree 一致：记录最近使用后再打开
+            pushRecentLink(l.id)
+            window.open(l.url, '_blank', 'noopener,noreferrer')
+          },
+        })),
     )
     const all = [...views, ...links]
     if (!q) return all
