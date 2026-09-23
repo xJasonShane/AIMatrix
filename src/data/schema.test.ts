@@ -58,6 +58,20 @@ describe('isValidUrl', () => {
     expect(isValidUrl('ftp://a.com')).toBe(false)
     expect(isValidUrl('not a url')).toBe(false)
   })
+
+  it('requires a parseable url with a host', () => {
+    // 旧前缀正则会放行 "https://"（无主机）等不可解析形态，现统一由 new URL 兜底
+    expect(isValidUrl('https://')).toBe(false)
+    expect(isValidUrl('https://in valid.com')).toBe(false)
+    expect(isValidUrl('javascript:alert(1)')).toBe(false)
+    expect(isValidUrl('//a.com')).toBe(false)
+  })
+
+  it('accepts urls with paths, queries and fragments', () => {
+    expect(isValidUrl('https://a.com/path?q=1#hash')).toBe(true)
+    // 协议大小写不敏感（URL 解析会归一化 scheme）
+    expect(isValidUrl('HTTPS://A.COM')).toBe(true)
+  })
 })
 
 it('real navigation.json is valid', () => {

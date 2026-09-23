@@ -19,9 +19,14 @@ export interface NavData {
 /** 分类未指定 color 时的默认色（全站唯一来源） */
 export const DEFAULT_COLOR = '#7a8a55'
 
-/** 仅接受 http/https 协议；非法 URL 由展示层渲染为禁用态而非抛错 */
+/** 仅接受 http/https 协议且 URL 可被解析；非法 URL 由展示层渲染为禁用态而非抛错 */
 export function isValidUrl(url: string): boolean {
-  return /^https?:\/\//.test(url)
+  try {
+    const { protocol } = new URL(url)
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
