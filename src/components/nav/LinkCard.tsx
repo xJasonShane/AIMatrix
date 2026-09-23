@@ -1,6 +1,6 @@
-import { memo, useState, type MouseEvent } from 'react'
+import { memo, useEffect, useState, type MouseEvent } from 'react'
 import { isValidUrl, type NavLink } from '../../data/schema'
-import { pushRecentLink } from '../../store/uiPrefs'
+import { getFavorites, pushRecentLink, subscribeFavorites, toggleFavorite } from '../../store/uiPrefs'
 
 interface Props {
   link: NavLink
@@ -14,6 +14,43 @@ function hostnameOf(url: string): string {
   } catch {
     return url
   }
+}
+
+/** 星形 path：24 视窗五角星，卡片与矩阵浮层共用同一形状 */
+export const STAR_ICON_D =
+  'M12 2.5l2.95 6.03 6.65.96-4.8 4.68 1.13 6.6L12 17.63l-5.93 3.12 1.13-6.6-4.8-4.68 6.65-.96L12 2.5z'
+
+/** 星标按钮：切换收藏状态；已收藏常显（强调色实心），未收藏 hover/键盘 focus-within 显现 */
+function FavoriteStarButton({ id }: { id: string }) {
+  // 自订阅收藏事件：状态切换即时反映（与 pushRecentLink 事件模式一致）
+  const [faved, setFaved] = useState(() => getFavorites().includes(id))
+  useEffect(() => subscribeFavorites(() => setFaved(getFavorites().includes(id))), [id])
+  const onClick = (e: MouseEvent) => {
+    // 阻止冒泡到 <a>：只切换收藏，不跳转、不计入最近使用
+    e.preventDefault()
+    e.stopPropagation()
+    toggleFavorite(id)
+  }
+  return (
+    <button
+      type="button"
+      className={`card-star${faved ? ' faved' : ''}`}
+      onClick={onClick}
+      aria-pressed={faved}
+      aria-label={faved ? '取消收藏' : '收藏'}
+      title={faved ? '取消收藏' : '收藏'}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden>
+        <path
+          d={STAR_ICON_D}
+          fill={faved ? 'currentColor' : 'none'}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  )
 }
 
 /** 复制链接地址：1.5s 后复位图标；剪贴板不可用时静默降级 */
@@ -119,6 +156,7 @@ export const LinkCard = memo(function LinkCard({ link, color, index }: Props) {
       style={{ ['--cat' as string]: color }}
     >
       <CardInner link={link} color={color} showDomain />
+      <FavoriteStarButton id={link.id} />
       <CopyUrlButton url={link.url} />
     </a>
   )

@@ -6,9 +6,42 @@ import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
 import { useNav, useCollapse } from '../store/useNavStore'
 import { useFocusOnSlash } from '../hooks/useKeyboard'
-import { getRecentLinks, subscribeRecentLinks } from '../store/uiPrefs'
+import { getFavorites, getRecentLinks, subscribeFavorites, subscribeRecentLinks } from '../store/uiPrefs'
 import { DEFAULT_COLOR, matchesQuery } from '../data/schema'
 import type { NavCategory, NavLink } from '../data/schema'
+
+/** 链接网格区块：收藏 / 最近使用共用的分类卡结构（胶带标题 + 渐变引导线 + 网格） */
+function LinkGridSection({
+  label,
+  title,
+  links,
+  colorVar,
+}: {
+  label: string
+  title: string
+  links: { link: NavLink; color: string }[]
+  colorVar: string
+}) {
+  return (
+    <section className="category mb-9" aria-label={label} style={{ ['--cat' as string]: colorVar }}>
+      <div className="flex items-center gap-3 px-0 py-1.5">
+        <span className="category-tape" aria-hidden />
+        <h2 className="category-name m-0 font-serif text-[19px] font-bold tracking-wide text-ink">
+          {title}
+        </h2>
+        <span className="category-count" style={{ color: colorVar }}>
+          {links.length}
+        </span>
+      </div>
+      <div className="category-rule" aria-hidden />
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 pt-3.5">
+        {links.map(({ link, color }, i) => (
+          <LinkCard key={link.id} link={link} color={color} index={i} />
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export function NavPage() {
   const { data, error } = useNav()
@@ -44,21 +77,43 @@ export function NavPage() {
     [visibleCategories],
   )
 
-  /** 最近使用：点击链接后通过事件订阅即时刷新（无需重新进入页面） */
-  const [recentIds, setRecentIds] = useState<string[]>(() => getRecentLinks())
-  useEffect(() => subscribeRecentLinks(() => setRecentIds(getRecentLinks())), [])
-
-  const recentLinks = useMemo(() => {
-    if (q) return []
+  /** id → {链接, 颜色} 索引：收藏区与最近使用区共用 */
+  const linkMap = useMemo(() => {
     const map = new Map<string, { link: NavLink; color: string }>()
     data.categories.forEach((c) =>
       c.links.forEach((l) => map.set(l.id, { link: l, color: c.color ?? DEFAULT_COLOR })),
     )
-    return recentIds
-      .map((id) => map.get(id))
-      .filter((x): x is { link: NavLink; color: string } => Boolean(x))
-      .slice(0, 6)
-  }, [q, data, recentIds])
+    return map
+  }, [data])
+
+  /** 最近使用：点击链接后通过事件订阅即时刷新（无需重新进入页面） */
+  const [recentIds, setRecentIds] = useState<string[]>(() => getRecentLinks())
+  useEffect(() => subscribeRecentLinks(() => setRecentIds(getRecentLinks())), [])
+
+  const recentLinks = useMemo(
+    () =>
+      q
+        ? []
+        : recentIds
+            .map((id) => linkMap.get(id))
+            .filter((x): x is { link: NavLink; color: string } => Boolean(x))
+            .slice(0, 6),
+    [q, linkMap, recentIds],
+  )
+
+  /** 收藏：星标切换后通过事件订阅即时刷新（搜索时同样隐藏） */
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => getFavorites())
+  useEffect(() => subscribeFavorites(() => setFavoriteIds(getFavorites())), [])
+
+  const favoriteLinks = useMemo(
+    () =>
+      q
+        ? []
+        : favoriteIds
+            .map((id) => linkMap.get(id))
+            .filter((x): x is { link: NavLink; color: string } => Boolean(x)),
+    [q, linkMap, favoriteIds],
+  )
 
   const { categoryCount, toolCount } = useMemo(
     () => ({
@@ -201,25 +256,13 @@ export function NavPage() {
             没有匹配「{query.trim()}」的工具 —— 试试其他关键词。
           </p>
         )}
+        {/* 收藏置顶区（仅非搜索状态展示）：星标切换后经事件订阅即时出现/消失 */}
+        {favoriteLinks.length > 0 && (
+          <LinkGridSection label="收藏" title="收藏" links={favoriteLinks} colorVar="var(--color-accent)" />
+        )}
         {/* 最近使用（仅非搜索状态展示） */}
         {recentLinks.length > 0 && (
-          <section className="category mb-9" aria-label="最近使用" style={{ ['--cat' as string]: 'var(--color-accent)' }}>
-            <div className="flex items-center gap-3 px-0 py-1.5">
-              <span className="category-tape" aria-hidden />
-              <h2 className="category-name m-0 font-serif text-[19px] font-bold tracking-wide text-ink">
-                最近使用
-              </h2>
-              <span className="category-count" style={{ color: 'var(--color-accent)' }}>
-                {recentLinks.length}
-              </span>
-            </div>
-            <div className="category-rule" aria-hidden />
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 pt-3.5">
-              {recentLinks.map(({ link, color }, i) => (
-                <LinkCard key={link.id} link={link} color={color} index={i} />
-              ))}
-            </div>
-          </section>
+          <LinkGridSection label="最近使用" title="最近使用" links={recentLinks} colorVar="var(--color-accent)" />
         )}
         {visibleCategories.map((c) => (
           <CategorySection key={c.id} category={c} forceOpen={q !== ''} />

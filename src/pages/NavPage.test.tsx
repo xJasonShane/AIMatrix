@@ -105,3 +105,26 @@ it('exposes the recent section as a named landmark', () => {
   renderNavPage()
   expect(screen.getByRole('region', { name: '最近使用' })).toBeTruthy()
 })
+
+it('shows the favorites section at the top and updates live when starring', () => {
+  renderNavPage()
+  // 初始无收藏：收藏区不渲染
+  expect(screen.queryByRole('region', { name: '收藏' })).toBeNull()
+  // 点击第一张卡片的星标 → 收藏区即时出现（事件订阅驱动，无需重挂载）
+  const star = screen.getAllByRole('button', { name: '收藏' })[0]
+  fireEvent.click(star)
+  expect(screen.getByRole('region', { name: '收藏' })).toBeTruthy()
+  // 收藏区位于最近使用 / 分类区之前（置顶）
+  const first = document.querySelector('main .category')
+  expect(first).toHaveAttribute('aria-label', '收藏')
+})
+
+it('hides the favorites section while searching', () => {
+  localStorage.setItem('aimatrix:favorites', JSON.stringify(['gpt']))
+  renderNavPage()
+  expect(screen.getByRole('region', { name: '收藏' })).toBeTruthy()
+  fireEvent.change(screen.getByPlaceholderText('搜索工具名称或描述…'), {
+    target: { value: 'chatgpt' },
+  })
+  expect(screen.queryByRole('region', { name: '收藏' })).toBeNull()
+})

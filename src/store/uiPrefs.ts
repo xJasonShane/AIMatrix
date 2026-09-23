@@ -25,6 +25,7 @@ export const uiPrefs = {
   set: safeSet,
   KEY_COLLAPSED: 'aimatrix:collapsed',
   KEY_RECENT: 'aimatrix:recent',
+  KEY_FAVORITE: 'aimatrix:favorites',
 }
 
 function readJsonArray(key: string): string[] {
@@ -57,4 +58,28 @@ export function subscribeRecentLinks(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {}
   window.addEventListener(RECENT_EVENT, cb)
   return () => window.removeEventListener(RECENT_EVENT, cb)
+}
+
+const FAVORITE_EVENT = 'aimatrix:favorites-changed'
+
+/** 切换收藏状态：未收藏则置顶加入，已收藏则移除；派发事件通知订阅方即时刷新 */
+export function toggleFavorite(id: string): void {
+  const prev = readJsonArray(uiPrefs.KEY_FAVORITE)
+  const next = prev.includes(id) ? prev.filter((x) => x !== id) : [id, ...prev]
+  uiPrefs.set(uiPrefs.KEY_FAVORITE, JSON.stringify(next))
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FAVORITE_EVENT))
+  }
+}
+
+/** 读取收藏的链接 id 列表（最新收藏在前） */
+export function getFavorites(): string[] {
+  return readJsonArray(uiPrefs.KEY_FAVORITE)
+}
+
+/** 订阅收藏变化，返回取消订阅函数 */
+export function subscribeFavorites(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  window.addEventListener(FAVORITE_EVENT, cb)
+  return () => window.removeEventListener(FAVORITE_EVENT, cb)
 }

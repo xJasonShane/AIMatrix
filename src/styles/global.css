@@ -111,6 +111,16 @@
   .link-card:focus-within .card-copy { opacity: 1; }
   .card-copy:hover { border-color: var(--color-accent); color: var(--color-accent); }
 
+  /* 卡片星标按钮：与复制按钮并排（右侧第二位）；已收藏常显为强调色实心 */
+  .card-star {
+    @apply absolute right-9 top-2 grid h-7 w-7 place-items-center rounded-full border border-line bg-paper-raised text-ink-faint opacity-0 shadow-sm transition-all;
+  }
+  .link-card:hover .card-star,
+  .link-card:focus-within .card-star,
+  .card-star.faved { opacity: 1; }
+  .card-star.faved { color: var(--color-accent); }
+  .card-star:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
   .category-count {
     @apply rounded-full border px-2 py-px font-mono text-xs;
     border-color: currentColor;

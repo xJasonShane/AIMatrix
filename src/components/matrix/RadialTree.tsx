@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { m } from 'framer-motion'
 import { matchesQuery, type NavData } from '../../data/schema'
+import { getFavorites, subscribeFavorites } from '../../store/uiPrefs'
 import { computeLayout } from './useRadialLayout'
 import { TreeCategoryNode } from './TreeCategoryNode'
 import { TreeLinkNode } from './TreeLinkNode'
@@ -25,6 +26,11 @@ export function RadialTree({ data, width, height, query }: Props) {
   const [hovered, setHovered] = useState<string | null>(null)
   const [pinnedCatId, setPinnedCatId] = useState<string | null>(null)
   const showLinkLabels = width >= 640
+
+  /** 收藏订阅：星标切换即时反映到浮层（整个树共享一个订阅，避免逐节点注册） */
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => getFavorites())
+  useEffect(() => subscribeFavorites(() => setFavoriteIds(getFavorites())), [])
+  const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds])
 
   /** 搜索匹配：按名称/描述过滤（与导航视图一致）；null 表示无查询 */
   const q = query?.trim().toLowerCase() ?? ''
@@ -183,6 +189,7 @@ export function RadialTree({ data, width, height, query }: Props) {
             link={l}
             active={active}
             isHot={isHot}
+            favorite={favoriteSet.has(l.id)}
             labelVisible={matchedLinkIds ? (matched ?? false) : (showLinkLabels || active) && showLabel}
             nodeOpacity={matchedLinkIds ? (matched ? 1 : 0.12) : showLabel ? 1 : 0.35}
             delay={i}

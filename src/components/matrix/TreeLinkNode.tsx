@@ -2,7 +2,8 @@ import { useRef, type MouseEvent } from 'react'
 import { m } from 'framer-motion'
 import { isValidUrl } from '../../data/schema'
 import type { LayoutLink } from './useRadialLayout'
-import { pushRecentLink } from '../../store/uiPrefs'
+import { pushRecentLink, toggleFavorite } from '../../store/uiPrefs'
+import { STAR_ICON_D } from '../nav/LinkCard'
 
 interface Props {
   link: LayoutLink
@@ -10,6 +11,8 @@ interface Props {
   active: boolean
   /** 自身被 hover/focus：显示信息浮层 */
   isHot: boolean
+  /** 是否已收藏（浮层星标实心与否；状态由 RadialTree 统一订阅下发） */
+  favorite: boolean
   /** 静态标签是否渲染（宽屏/活动分支/查询命中规则由父组件计算） */
   labelVisible: boolean
   /** 节点本体不透明度（查询未命中时压暗） */
@@ -25,6 +28,7 @@ export function TreeLinkNode({
   link,
   active,
   isHot,
+  favorite,
   labelVisible,
   nodeOpacity,
   delay,
@@ -166,6 +170,31 @@ export function TreeLinkNode({
           >
             {valid ? '打开 ↗' : 'URL 非法 · 已禁用'}
           </text>
+          {/* 收藏星标（仅合法 URL）：置于"打开 ↗"行右侧；显式 pointerEvents:auto 覆盖浮层的 none 继承，
+              点击不冒泡到节点 <a>；键盘用户经导航卡片星标操作（浮层本身仅 hover/focus 临时存在） */}
+          {valid && (
+            <g
+              className="pop-star"
+              role="button"
+              aria-label={favorite ? '取消收藏' : '收藏'}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleFavorite(link.id)
+              }}
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+            >
+              <title>{favorite ? '取消收藏' : '收藏'}</title>
+              <circle cx={popX + popW - 18} cy={popY + 48} r={13} fill="transparent" />
+              <path
+                transform={`translate(${popX + popW - 26} ${popY + 40}) scale(0.66)`}
+                d={STAR_ICON_D}
+                fill={favorite ? 'var(--color-accent)' : 'none'}
+                stroke={favorite ? 'var(--color-accent)' : 'var(--color-ink-faint)'}
+                strokeWidth={2}
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
         </m.g>
       )}
     </m.g>

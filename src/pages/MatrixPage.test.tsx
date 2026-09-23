@@ -145,4 +145,24 @@ describe('MatrixPage', () => {
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(currentSearch).toBe('')
   })
+
+  it('stars a link from the tree node popover', async () => {
+    localStorage.removeItem('aimatrix:favorites')
+    renderPage()
+    triggerResize()
+    await flushFrame()
+    // hover 叶节点 → 信息浮层出现，内含收藏星标
+    const node = document.querySelector('a.tree-link-node') as Element
+    expect(node).toBeTruthy()
+    fireEvent.mouseEnter(node)
+    const star = document.querySelector('.pop-star') as Element
+    expect(star).toBeTruthy()
+    expect(screen.getByLabelText('收藏')).toBeTruthy()
+    // 点击星标 → 收藏持久化（星标点击不触发链接访问，recent 不变）
+    fireEvent.click(star)
+    expect(localStorage.getItem('aimatrix:favorites')).toBeTruthy()
+    expect(localStorage.getItem('aimatrix:recent')).toBeNull()
+    // 清理，避免跨测试污染（uiPrefs 有内存回退）
+    localStorage.removeItem('aimatrix:favorites')
+  })
 })

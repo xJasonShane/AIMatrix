@@ -66,4 +66,32 @@ describe('LinkCard', () => {
     renderCard({ ...baseLink, name: 'chatgpt' })
     expect(screen.getByText('C')).toBeTruthy()
   })
+
+  it('toggles favorite via the star button without navigating or recording recent', () => {
+    renderCard(baseLink)
+    const star = screen.getByRole('button', { name: '收藏' })
+    expect(star).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(star)
+    // 收藏写入 localStorage 且 aria-pressed 翻转
+    expect(localStorage.getItem('aimatrix:favorites')).toContain('gpt')
+    const faved = screen.getByRole('button', { name: '取消收藏' })
+    expect(faved).toHaveAttribute('aria-pressed', 'true')
+    // 星标点击不算访问：不写入最近使用
+    expect(localStorage.getItem('aimatrix:recent')).toBeNull()
+    // 再次点击取消收藏
+    fireEvent.click(faved)
+    expect(screen.getByRole('button', { name: '收藏' })).toBeTruthy()
+    expect(localStorage.getItem('aimatrix:favorites')).not.toContain('gpt')
+  })
+
+  it('reflects an already-favorited link as pressed on mount', () => {
+    localStorage.setItem('aimatrix:favorites', JSON.stringify(['gpt']))
+    renderCard(baseLink)
+    expect(screen.getByRole('button', { name: '取消收藏' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('does not offer a star button for an invalid url', () => {
+    renderCard({ ...baseLink, url: 'ftp://bad' })
+    expect(screen.queryByRole('button', { name: '收藏' })).toBeNull()
+  })
 })

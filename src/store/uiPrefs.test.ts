@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { pushRecentLink, getRecentLinks, subscribeRecentLinks } from './uiPrefs'
+import {
+  pushRecentLink,
+  getRecentLinks,
+  subscribeRecentLinks,
+  toggleFavorite,
+  getFavorites,
+  subscribeFavorites,
+} from './uiPrefs'
 
 beforeEach(() => localStorage.clear())
 
@@ -38,6 +45,36 @@ describe('recent links', () => {
     expect(calls).toBe(1)
     unsub()
     pushRecentLink('b')
+    expect(calls).toBe(1)
+  })
+})
+
+describe('favorites', () => {
+  it('toggles: first call adds (newest first), second call removes', () => {
+    expect(getFavorites()).toEqual([])
+    toggleFavorite('a')
+    expect(getFavorites()).toEqual(['a'])
+    toggleFavorite('b')
+    // 最新收藏在前
+    expect(getFavorites()).toEqual(['b', 'a'])
+    toggleFavorite('b')
+    expect(getFavorites()).toEqual(['a'])
+  })
+
+  it('persists to localStorage', () => {
+    toggleFavorite('gpt')
+    expect(localStorage.getItem('aimatrix:favorites')).toContain('gpt')
+  })
+
+  it('notifies subscribers on toggle and stops after unsubscribe', () => {
+    let calls = 0
+    const unsub = subscribeFavorites(() => {
+      calls += 1
+    })
+    toggleFavorite('a')
+    expect(calls).toBe(1)
+    unsub()
+    toggleFavorite('a')
     expect(calls).toBe(1)
   })
 })
