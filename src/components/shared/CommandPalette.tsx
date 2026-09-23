@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, m } from 'framer-motion'
 import { useNav } from '../../store/useNavStore'
 import { DEFAULT_COLOR, isValidUrl } from '../../data/schema'
 import { pushRecentLink } from '../../store/uiPrefs'
@@ -113,7 +113,7 @@ export function CommandPalette() {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           className="cmdk-overlay fixed inset-0 z-50 bg-ink/25 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -124,7 +124,7 @@ export function CommandPalette() {
           aria-modal="true"
           aria-label="命令面板"
         >
-          <motion.div
+          <m.div
             ref={panelRef}
             className="cmdk-panel mx-auto mt-[12vh] w-[min(560px,92vw)] overflow-hidden rounded-[14px] border border-line bg-paper-raised shadow-[0_24px_60px_-20px_rgba(60,45,25,0.5)]"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -206,8 +206,8 @@ export function CommandPalette() {
                 ))}
               </ul>
             )}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

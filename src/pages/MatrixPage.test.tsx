@@ -1,6 +1,7 @@
 import { it, expect, describe, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../store/useNavStore'
 import { MatrixPage } from './MatrixPage'
 
@@ -15,13 +16,16 @@ class ResizeObserverStub {
   disconnect() {}
 }
 
+// m 组件的动画/手势特性需由 LazyMotion 提供（生产环境由 App 统一注入）
 const renderPage = () =>
   render(
-    <MemoryRouter>
-      <NavProvider>
-        <MatrixPage />
-      </NavProvider>
-    </MemoryRouter>,
+    <LazyMotion features={domAnimation} strict>
+      <MemoryRouter>
+        <NavProvider>
+          <MatrixPage />
+        </NavProvider>
+      </MemoryRouter>
+    </LazyMotion>,
   )
 
 const triggerResize = () =>

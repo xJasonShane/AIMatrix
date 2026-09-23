@@ -1,4 +1,4 @@
-import { MotionConfig, motion } from 'framer-motion'
+import { LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { NavProvider, useNav } from './store/useNavStore'
 import { DataError } from './components/shared/DataError'
@@ -12,7 +12,7 @@ function Shell() {
   if (error) return <DataError message={error} />
   return (
     <>
-      <motion.div
+      <m.div
         key={location.pathname}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -23,7 +23,7 @@ function Shell() {
           <Route path="/matrix" element={<MatrixPage />} />
           <Route path="*" element={<Navigate to="/nav" replace />} />
         </Routes>
-      </motion.div>
+      </m.div>
       {/* 全局命令面板：置于按路由 key 的容器之外，避免切视图时重挂载 */}
       <CommandPalette />
     </>
@@ -33,9 +33,12 @@ function Shell() {
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <NavProvider>
-        <Shell />
-      </NavProvider>
+      {/* LazyMotion + domAnimation：仅打包动画/手势特性，剔除 drag/layout 体积 */}
+      <LazyMotion features={domAnimation} strict>
+        <NavProvider>
+          <Shell />
+        </NavProvider>
+      </LazyMotion>
     </MotionConfig>
   )
 }

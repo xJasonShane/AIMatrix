@@ -1,5 +1,6 @@
 import { it, expect } from 'vitest'
 import { render, fireEvent } from '@testing-library/react'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { RadialTree } from './RadialTree'
 import type { NavData } from '../../data/schema'
 
@@ -22,7 +23,13 @@ const data: NavData = {
   ],
 }
 
-const renderTree = () => render(<RadialTree data={data} width={800} height={600} />)
+// m 组件的动画/手势特性需由 LazyMotion 提供（生产环境由 App 统一注入）
+const renderTree = () =>
+  render(
+    <LazyMotion features={domAnimation} strict>
+      <RadialTree data={data} width={800} height={600} />
+    </LazyMotion>,
+  )
 
 it('renders an anchor for valid links and a disabled node for invalid ones', () => {
   const { container } = renderTree()

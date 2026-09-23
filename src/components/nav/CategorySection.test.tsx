@@ -1,6 +1,7 @@
 import { it, expect, describe, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../../store/useNavStore'
 import { CategorySection } from './CategorySection'
 import type { NavCategory } from '../../data/schema'
@@ -15,13 +16,16 @@ const category: NavCategory = {
   ],
 }
 
+// m 组件的动画/手势特性需由 LazyMotion 提供（生产环境由 App 统一注入）
 const renderSection = (props: { forceOpen?: boolean } = {}) =>
   render(
-    <MemoryRouter>
-      <NavProvider>
-        <CategorySection category={category} {...props} />
-      </NavProvider>
-    </MemoryRouter>,
+    <LazyMotion features={domAnimation} strict>
+      <MemoryRouter>
+        <NavProvider>
+          <CategorySection category={category} {...props} />
+        </NavProvider>
+      </MemoryRouter>
+    </LazyMotion>,
   )
 
 const headOf = () => screen.getByRole('button', { name: /对话助手/ })

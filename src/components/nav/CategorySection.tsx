@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, m } from 'framer-motion'
 import { DEFAULT_COLOR, type NavCategory } from '../../data/schema'
 import { useCollapse } from '../../store/useNavStore'
 import { LinkCard } from './LinkCard'
@@ -37,7 +37,7 @@ export function CategorySection({ category, forceOpen = false }: Props) {
       <div className="category-rule" aria-hidden />
       <AnimatePresence initial={false}>
         {!collapsed && (
-          <motion.div
+          <m.div
             className="card-grid grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 pt-3.5"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -48,7 +48,7 @@ export function CategorySection({ category, forceOpen = false }: Props) {
             {category.links.map((l, i) => (
               <LinkCard key={l.id} link={l} color={color} index={i} />
             ))}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </section>

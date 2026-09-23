@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { AppHeader } from '../components/shared/AppHeader'
 import { CategorySection } from '../components/nav/CategorySection'
 import { LinkCard } from '../components/nav/LinkCard'
@@ -53,7 +53,7 @@ export function NavPage() {
 
       <main className="nav-main mx-auto w-[min(1160px,100%-48px)] flex-1 pb-16 pt-8">
         {/* Hero */}
-        <motion.section
+        <m.section
           className="relative mb-10 border-b border-line pb-7"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,26 +66,26 @@ export function NavPage() {
           <p className="mt-3 text-[15px] text-ink-soft">精选常用 AI 工具 · 一键直达</p>
 
           <div className="mt-5 flex flex-wrap items-center gap-2.5">
-            <motion.span
+            <m.span
               className="rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.15 }}
             >
               {categoryCount} 个分类
-            </motion.span>
-            <motion.span
+            </m.span>
+            <m.span
               className="rounded-full border border-line px-3.5 py-1.5 font-mono text-xs text-ink-soft"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.25 }}
             >
               {q ? `匹配 ${matchedCount} / ${toolCount} 个工具` : `${toolCount} 个工具`}
-            </motion.span>
+            </m.span>
           </div>
 
           {/* 即时搜索框 */}
-          <motion.div
+          <m.div
             className="mt-6 flex max-w-[420px] items-center gap-2 rounded-full border border-line bg-paper-raised px-4 py-2 shadow-[inset_0_1px_3px_rgba(80,60,30,0.08)] transition-colors focus-within:border-accent"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -128,7 +128,7 @@ export function NavPage() {
                 Ctrl K
               </kbd>
             )}
-          </motion.div>
+          </m.div>
 
           {/* 赭橙印章点缀 */}
           <span
@@ -137,7 +137,7 @@ export function NavPage() {
           >
             精选
           </span>
-        </motion.section>
+        </m.section>
 
         {!error && q === '' && data.categories.length === 0 && (
           <p className="py-10 text-center text-ink-soft">

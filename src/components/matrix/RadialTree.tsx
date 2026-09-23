@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, type MouseEvent } from 'react'
-import { motion } from 'framer-motion'
+﻿import { useMemo, useRef, useState, type MouseEvent } from 'react'
+import { m } from 'framer-motion'
 import { isValidUrl, type NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
 import { pushRecentLink } from '../../store/uiPrefs'
@@ -72,7 +72,7 @@ export function RadialTree({ data, width, height }: Props) {
 
       {/* root -> categories */}
       {layout.categories.map((c, i) => (
-        <motion.path
+        <m.path
           key={`e-${c.id}`}
           d={linkPos(layout.root.x, layout.root.y, c.x, c.y)}
           stroke={c.color}
@@ -90,7 +90,7 @@ export function RadialTree({ data, width, height }: Props) {
         const parent = layout.categories.find((c) => c.id === l.categoryId)!
         const active = activeCatId === l.categoryId
         return (
-          <motion.path
+          <m.path
             key={`e-${l.id}`}
             d={linkPos(parent.x, parent.y, l.x, l.y)}
             stroke={l.color}
@@ -125,7 +125,7 @@ export function RadialTree({ data, width, height }: Props) {
 
       {/* category nodes：点击固定高亮该分支（再点一次取消），键盘可达 */}
       {layout.categories.map((c, i) => (
-        <motion.g
+        <m.g
           key={c.id}
           className={`tree-cat${activeCatId === c.id ? ' active' : ''}`}
           onMouseEnter={() => setHovered(c.id)}
@@ -151,7 +151,7 @@ export function RadialTree({ data, width, height }: Props) {
           <text x={c.x} y={c.y - 24} textAnchor="middle" className="cat-label" fill={c.color}>
             {c.name}
           </text>
-        </motion.g>
+        </m.g>
       ))}
 
       {/* link nodes + hover 浮层 */}
@@ -213,9 +213,9 @@ export function RadialTree({ data, width, height }: Props) {
           style: { transformOrigin: `${l.x}px ${l.y}px`, cursor: valid ? 'pointer' : 'not-allowed' },
         }
         return (
-          <motion.g key={l.id}>
+          <m.g key={l.id}>
             {valid ? (
-              <motion.a
+              <m.a
                 href={l.url}
                 target="_blank"
                 rel="noreferrer"
@@ -225,17 +225,17 @@ export function RadialTree({ data, width, height }: Props) {
                 onClick={handleClick}
               >
                 {nodeInner}
-              </motion.a>
+              </m.a>
             ) : (
               // 非法 URL：渲染为禁用节点，不可点击（与导航卡片行为一致）
-              <motion.g className="tree-link-node disabled" aria-disabled="true" {...nodeHandlers} {...nodeAnim}>
+              <m.g className="tree-link-node disabled" aria-disabled="true" {...nodeHandlers} {...nodeAnim}>
                 {nodeInner}
-              </motion.g>
+              </m.g>
             )}
 
             {/* hover / focus 浮层 */}
             {isHot && (
-              <motion.g
+              <m.g
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15, delay: 0.15 }}
@@ -285,9 +285,9 @@ export function RadialTree({ data, width, height }: Props) {
                 >
                   {valid ? '打开 ↗' : 'URL 非法 · 已禁用'}
                 </text>
-              </motion.g>
+              </m.g>
             )}
-          </motion.g>
+          </m.g>
         )
       })}
     </svg>

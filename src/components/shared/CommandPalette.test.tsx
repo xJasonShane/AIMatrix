@@ -1,6 +1,7 @@
 import { it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent, waitFor, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../../store/useNavStore'
 import { CommandPalette } from './CommandPalette'
 import raw from '../../data/navigation.json'
@@ -26,11 +27,13 @@ beforeEach(() => {
 
 const renderPalette = (initialPath = '/nav') =>
   render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <NavProvider>
-        <CommandPalette />
-      </NavProvider>
-    </MemoryRouter>,
+    <LazyMotion features={domAnimation} strict>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <NavProvider>
+          <CommandPalette />
+        </NavProvider>
+      </MemoryRouter>
+    </LazyMotion>,
   )
 
 it('opens with Ctrl+K and closes on Escape', async () => {
