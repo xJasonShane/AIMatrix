@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState, type MouseEvent } from 'react'
+import { useMemo, useRef, useState, type MouseEvent } from 'react'
 import { m } from 'framer-motion'
 import { isValidUrl, type NavData } from '../../data/schema'
 import { computeLayout } from './useRadialLayout'
@@ -87,12 +87,11 @@ export function RadialTree({ data, width, height }: Props) {
 
       {/* categories -> links */}
       {layout.links.map((l) => {
-        const parent = layout.categories.find((c) => c.id === l.categoryId)!
         const active = activeCatId === l.categoryId
         return (
           <m.path
             key={`e-${l.id}`}
-            d={linkPos(parent.x, parent.y, l.x, l.y)}
+            d={linkPos(l.parent.x, l.parent.y, l.x, l.y)}
             stroke={l.color}
             strokeWidth={active ? 1.8 : 0.9}
             fill="none"

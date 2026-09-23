@@ -35,4 +35,13 @@ describe('computeLayout', () => {
     const [c1, c2] = layout.categories
     expect(Math.hypot(c1.x - c2.x, c1.y - c2.y)).toBeGreaterThan(40)
   })
+
+  it('precomputes the parent category position on every link', () => {
+    const layout = computeLayout(data, 1000, 700)
+    expect(layout.links).toHaveLength(3)
+    for (const l of layout.links) {
+      const parent = layout.categories.find((c) => c.id === l.categoryId)!
+      expect(l.parent).toEqual({ x: parent.x, y: parent.y })
+    }
+  })
 })
