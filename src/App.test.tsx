@@ -2,6 +2,7 @@ import { it, expect, describe, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
+import raw from '../public/data/navigation.json'
 
 // jsdom 无 ResizeObserver（矩阵视图用到）
 class ResizeObserverStub {
@@ -10,17 +11,8 @@ class ResizeObserverStub {
   disconnect() {}
 }
 
-// navigation.json mock：默认透传真实数据；测试经 globalThis 覆盖以触发数据错误降级
-vi.mock('./data/navigation.json', async (importOriginal) => {
-  const actual = await importOriginal<{ default: unknown }>()
-  return {
-    get default() {
-      const override = (globalThis as { __navRawOverride?: unknown }).__navRawOverride
-      return override ?? actual.default
-    },
-  }
-})
-
+// navigation.json 现为运行时 fetch：以 stub 的 fetch 提供数据；
+// 测试经 globalThis 覆盖返回体以触发数据错误降级
 const navOverride = (value: unknown) => {
   ;(globalThis as { __navRawOverride?: unknown }).__navRawOverride = value
 }
@@ -36,6 +28,14 @@ beforeEach(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverStub)
   // jsdom 无 canvas 实现：墨雨对 null ctx 已有降级，打桩去除噪声输出
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  // 数据 fetch stub：读取覆盖值（惰性，供用例在 renderApp 前注入坏数据）
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => {
+      const payload = (globalThis as { __navRawOverride?: unknown }).__navRawOverride ?? raw
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(payload) })
+    }),
+  )
 })
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -112,15 +112,15 @@ describe('App shell', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
   })
 
-  it('shows the full-screen data error page instead of a blank screen when navigation.json is invalid', () => {
-    // 缺 url 字段：validateNavData 抛错 → Shell 走 error 分支
+  it('shows the full-screen data error page instead of a blank screen when navigation.json is invalid', async () => {
+    // 缺 url 字段：validateNavData 抛错 → Shell 走 error 分支（数据经运行时 fetch 到达，需异步等待）
     navOverride({
       categories: [
         { id: 'chat', name: '对话助手', links: [{ id: 'gpt', name: 'ChatGPT', description: '' }] },
       ],
     })
     renderApp('/nav')
-    expect(screen.getByRole('alert')).toBeTruthy()
+    await screen.findByRole('alert')
     expect(screen.getByText(/categories\[0\]\.links\[0\]\.url/)).toBeTruthy()
     expect(screen.queryByRole('heading', { level: 1, name: '个人 AI 工具矩阵' })).toBeNull()
   })

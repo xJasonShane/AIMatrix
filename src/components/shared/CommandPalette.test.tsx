@@ -4,7 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../../store/useNavStore'
 import { CommandPalette } from './CommandPalette'
-import raw from '../../data/navigation.json'
+import type { NavData } from '../../data/schema'
+import raw from '../../../public/data/navigation.json'
 
 // 默认使用真实数据；个别用例可整体替换（渲染时才读取该变量，规避 vi.mock 提升期 TDZ）
 let mockData: unknown = raw
@@ -29,7 +30,7 @@ const renderPalette = (initialPath = '/nav') =>
   render(
     <LazyMotion features={domAnimation} strict>
       <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <NavProvider>
+        <NavProvider initialData={raw as NavData}>
           <CommandPalette />
         </NavProvider>
       </MemoryRouter>

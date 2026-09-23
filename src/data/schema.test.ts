@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateNavData, categoryAngleRanges, isValidUrl, matchesQuery } from './schema'
-import raw from './navigation.json'
+import raw from '../../public/data/navigation.json'
 
 const good = {
   categories: [

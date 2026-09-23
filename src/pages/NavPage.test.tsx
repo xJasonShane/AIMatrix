@@ -5,7 +5,8 @@ import { useEffect } from 'react'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../store/useNavStore'
 import { NavPage } from './NavPage'
-import raw from '../data/navigation.json'
+import type { NavData } from '../data/schema'
+import raw from '../../public/data/navigation.json'
 
 const count = (raw as { categories: { links: unknown[] }[] }).categories
   .reduce((n, c) => n + c.links.length, 0)
@@ -26,7 +27,7 @@ const renderNavPage = (initialPath = '/nav') => {
   return render(
     <LazyMotion features={domAnimation} strict>
       <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <NavProvider>
+        <NavProvider initialData={raw as NavData}>
           <NavPage />
           <SearchProbe />
         </NavProvider>

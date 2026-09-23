@@ -44,7 +44,7 @@ function LinkGridSection({
 }
 
 export function NavPage() {
-  const { data, error } = useNav()
+  const { data, error, loading } = useNav()
   const { setAllCollapsed } = useCollapse()
   // 搜索词同步到 URL（?q=…）：刷新/分享链接保留搜索状态；键入以 replace 写入避免污染历史栈
   const [searchParams, setSearchParams] = useSearchParams()
@@ -245,10 +245,11 @@ export function NavPage() {
           </span>
         </m.section>
 
-        {!error && q === '' && data.categories.length === 0 && (
+        {!error && !loading && q === '' && data.categories.length === 0 && (
           <p className="py-10 text-center text-ink-soft">
-            还没有任何链接 —— 请编辑 <code className="font-mono text-accent">src/data/navigation.json</code>{' '}
-            添加你的 AI 工具。
+            还没有任何链接 —— 请编辑{' '}
+            <code className="font-mono text-accent">public/data/navigation.json</code> 添加你的 AI
+            工具。
           </p>
         )}
         {!error && q !== '' && visibleCategories.length === 0 && (
@@ -270,7 +271,7 @@ export function NavPage() {
       </main>
 
       <footer className="flex justify-between border-t border-line px-7 py-[18px] font-mono text-xs text-ink-faint">
-        <span>数据源：src/data/navigation.json</span>
+        <span>数据源：public/data/navigation.json（运行时加载，替换即生效）</span>
         <Link to="/matrix" className="text-accent hover:underline">
           进入矩阵视图 →
         </Link>

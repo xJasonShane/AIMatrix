@@ -5,6 +5,8 @@ import { useEffect } from 'react'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { NavProvider } from '../store/useNavStore'
 import { MatrixPage } from './MatrixPage'
+import type { NavData } from '../data/schema'
+import raw from '../../public/data/navigation.json'
 
 // jsdom 无 ResizeObserver：记录实例，便于手动触发尺寸回调
 const roInstances: { cb: ResizeObserverCallback }[] = []
@@ -33,7 +35,7 @@ const renderPage = (initialPath = '/matrix') => {
   return render(
     <LazyMotion features={domAnimation} strict>
       <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <NavProvider>
+        <NavProvider initialData={raw as NavData}>
           <MatrixPage />
           <SearchProbe />
         </NavProvider>

@@ -15,7 +15,7 @@
 | 矩阵雨 | 原生 Canvas（无重型依赖） |
 | 样式 | Tailwind CSS v4 |
 | 测试 | Vitest + React Testing Library |
-| 数据源 | `src/data/navigation.json`（构建时打包） |
+| 数据源 | `public/data/navigation.json`（运行时 fetch，替换即生效，无需重新构建） |
 | 持久化 | localStorage 仅存 UI 偏好 |
 
 ## 快速开始
@@ -39,7 +39,7 @@ npm run preview
 
 ## 如何维护导航数据
 
-站点不提供站内增删改，日常只需编辑唯一的数据文件 [src/data/navigation.json](src/data/navigation.json)：
+站点不提供站内增删改，日常只需编辑唯一的数据文件 [public/data/navigation.json](public/data/navigation.json)（页面运行时加载，部署后替换该文件并刷新即可生效）：
 
 ```jsonc
 {

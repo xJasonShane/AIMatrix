@@ -7,7 +7,7 @@ export function DataError({ message }: { message: string }) {
       <h1 className="mt-0 font-serif text-xl font-bold text-accent">navigation.json 数据无效</h1>
       <pre className="whitespace-pre-wrap font-mono text-[13px] text-ink-soft">{message}</pre>
       <p className="text-ink-soft">
-        请修复 <code className="font-mono text-accent">src/data/navigation.json</code> 后重新构建。
+        请修复 <code className="font-mono text-accent">public/data/navigation.json</code> 后刷新页面。
       </p>
     </div>
   )
